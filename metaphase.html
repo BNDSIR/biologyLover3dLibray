@@ -1,0 +1,95 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>3D Lesson</title><script type="module" src="https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script><style>*{box-sizing:border-box}body{margin:0;background:#091e2c;color:#eef9ff;font:16px system-ui,'Nirmala UI',sans-serif}header{padding:18px}h1{margin:0 0 12px}button,select{font:inherit;padding:10px;border:1px solid #658591;background:#204457;color:white;border-radius:9px;cursor:pointer}button:disabled{opacity:.45}.bar{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}main{display:grid;grid-template-columns:minmax(0,1fr) 340px}main.wide{grid-template-columns:1fr}model-viewer{width:100%;height:72vh;min-height:350px;background:radial-gradient(ellipse,#426274,#152c3b)}aside{padding:20px;max-height:80vh;overflow:auto;background:#102f40}p{line-height:1.65;white-space:pre-wrap}.hot{background:white;color:#173746;padding:6px;font-size:13px}#parts button{display:block;margin:8px 0;width:100%;text-align:left}[hidden]{display:none!important}#status{font-size:14px;color:#c0dbe6}button:focus-visible{outline:3px solid #ffd37e}@media(max-width:740px){main{grid-template-columns:1fr}model-viewer{height:58vh}aside{max-height:none}}</style>
+<header><h1 id="heading"></h1><div class="bar"><button id="lang">বাংলা</button><button id="details"></button><button id="rotate"></button><button id="reset"></button><button id="toggleLabels">Labels</button><button id="fullscreen">Fullscreen</button><button id="play" disabled></button><select id="clips" hidden aria-label="Animation"></select></div><button id="studentLocal">Open local GLB</button><input id="studentGLB" type="file" accept=".glb" hidden><div id="status" role="status"></div></header><div class="bar" id="extraControls"><button id="restartAnim">↺ Restart</button><button id="stepBack">−0.1 s</button><button id="stepNext">+0.1 s</button><label>Speed <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select></label><label><input type="checkbox" id="loopAnim" checked style="width:auto"> Loop</label><label style="flex:1;min-width:170px">Timeline <input id="seekAnim" type="range" min="0" max="1" step="0.01" value="0" style="width:100%"></label><output id="timeAnim">0.0 / 0.0 s</output></div><div class="bar" id="actionButtons"></div><main id="layout"><model-viewer id="viewer" camera-controls touch-action="pan-y" shadow-intensity="0.3"></model-viewer><aside id="panel"><button id="close" aria-label="Close details">×</button><h2 id="title"></h2><p id="description"></p><div class="bar"><button id="listen"></button><button id="stop"></button></div><label id="voiceLabel" for="voice"></label><select id="voice" style="width:100%"></select><p id="speechStatus" role="status"></p><div id="parts"></div></aside></main>
+<footer id="copyright" style="padding:20px;text-align:center;color:#b6d4df;border-top:1px solid #345363"></footer><script id="lesson" type="application/json">{"id":"model-1790589767198","src":"metaphase.glb","title":{"en":"Metaphase","bn":"মাইটোসিসের মেটাফেজ দশা"},"description":{"en":"","bn":"মেটাফেজ দশার প্রধান বৈশিষ্ট্যসমূহবিষুবীয় অঞ্চলে বিন্যাস (Equatorial Plate): সমস্ত ক্রোমোজোম কোষের ঠিক মাঝ বরাবর বা বিষুবীয় অঞ্চলে (যাকে মেটাফেজ প্লেট বলা হয়) এসে সারিবদ্ধভাবে সাজে।সর্বোচ্চ ঘনত্ব ও আকৃতি: এই ধাপে ক্রোমোজোমগুলো সবচেয়ে বেশি খাটো, মোটা এবং স্পষ্ট বা দৃশ্যমান হয়। প্রতিটি ক্রোমোজোম তখন দুটি অপত্য ক্রোমাটিডে (Chromatid) বিভক্ত থাকে।সেন্ট্রোমিয়ারের অবস্থান: প্রতিটি ক্রোমোজোমের সেন্ট্রোমিয়ার (Centromere) বিষুবীয় রেখার দিকে এবং বাহুগুলো মেরুর দিকে মুখ করে থাকে।স্পিন্ডল তন্তুর সংযুক্তি: স্পিন্ডল যন্ত্রের স্পিন্ডল তন্তু বা ট্র্যাকশন ফাইবারগুলো (Traction Fiber) ক্রোমোজোমের কাইনেটোকোর (Kinetochore) অংশের সাথে যুক্ত হয়।নিউক্লীয় পর্দা ও নিউক্লিওলাসের বিলুপ্তি: এই ধাপে নিউক্লিয়াস পর্দা এবং নিউক্লিওলাস সম্পূর্ণ অদৃশ্য থাকে।এই ধাপের কাজ ও গুরুত্বমেটাফেজ প্লেটে ক্রোমোজোমগুলোর সুবিন্যস্ত অবস্থান নিশ্চিত করে যে পরবর্তী ধাপে (অ্যানাফেজ) অপত্য ক্রোমোজোমগুলো দুই মেরুতে সমানভাবে বিভক্ত হয়ে চলে যেতে পারবে।কোষ বিভাজনে কোনো ভুল ত্রুটি আছে কি না তা যাচাই করার জন্য এখানে মেটাফেজ চেকপয়েন্ট কাজ করে।মেটাফেজ দশা সম্পর্কে আরও বিস্তারিত এবং এই ধাপে গঠিত বিভিন্ন ধরণের স্পিন্ডল তন্তুর (Spindle Fibers) বিবরণ নিচে দেওয়া হলো:\n## স্পিন্ডল যন্ত্র (Spindle Apparatus) ও তন্তুর প্রকারভেদ\nমেটাফেজ দশায় প্রোটিন (প্রধানত টিউবুলিন) দিয়ে তৈরি যে মাকু আকৃতির কাঠামোটি দেখা যায়, তাকে স্পিন্ডল যন্ত্র বলে। এই স্পিন্ডল যন্ত্রে প্রধানত তিন ধরণের স্পিন্ডল তন্তু বা মাইক্রোটিউবিউল (Microtubules) দেখা যায়:\n\n* ক্রোমোজোমাল তন্তু বা কাইনেটোকোর তন্তু (Chromosomal / Kinetochore Microtubules):\n* এই তন্তুগুলো স্পিন্ডল মেরু (Pole) থেকে উৎপন্ন হয়ে ক্রোমোজোমের সেন্ট্রোমিয়ারে থাকা কাইনেটোকোর (Kinetochore) নামক প্রোটিন কাঠামোর সাথে সরাসরি যুক্ত হয়।\n   * মেটাফেজ প্লেটে ক্রোমোজোমগুলোকে টেনে ধরে রাখতে এবং পরবর্তী ধাপে তাদের মেরুর দিকে নিয়ে যেতে এটি মূল ভূমিকা পালন করে।\n* মেরু তন্তু বা ইন্টারপোলার তন্তু (Polar / Interpolar Microtubules):\n* এই তন্তুগুলো এক মেরু থেকে বিস্তৃত হয়ে অন্য মেরু থেকে আসা তন্তুর সাথে কোষের মাঝখান বরাবর খাপ খেয়ে বা ওভারল্যাপ (Overlap) করে অবস্থান করে।\n   * এরা কোনো ক্রোমোজোমের সাথে যুক্ত হয় না। এদের মূল কাজ হলো স্পিন্ডল কাঠামোর আকৃতি ঠিক রাখা এবং কোষটিকে দুই দিকে ঠেলে লম্বা হতে সাহায্য করা।\n* অ্যাস্ট্রাল তন্তু (Astral Microtubules):\n* প্রাণী কোষে সেন্ট্রিওলকে কেন্দ্র করে তারকার মতো চারদিকে যে ছোট ছোট তন্তু বিচ্ছুরিত হয়, তাদের অ্যাস্ট্রাল তন্তু বলে (উদ্ভিদ কোষে সেন্ট্রিওল না থাকায় এটি সাধারণত গঠিত হয় না)।\n   * এরা স্পিন্ডল যন্ত্রকে কোষের প্লাজমা মেমব্রেন বা কর্টেক্সের সাথে নোঙর করতে (Anchor) সাহায্য করে, যা পুরো বিভাজন প্রক্রিয়াকে স্থিতিশীল রাখে।\n\n------------------------------\n## মেটাফেজ দশার আরও কিছু গুরুত্বপূর্ণ বিস্তারিত তথ্য (Advanced Details)\n১. মেটাফেজ ক্রোমোজোমের গঠন:\nএই দশায় প্রতিটি ক্রোমোজোম লম্বালম্বিভাবে দুটি ক্রোমাটিড-এ বিভক্ত থাকে, যা সেন্ট্রোমিয়ার অঞ্চলে একে অপরের সাথে যুক্ত থাকে। এই সময় ক্রোমোজোমের ঘনীভবন (Condensation) সর্বোচ্চ পর্যায়ে পৌঁছায় বলে একে মাইক্রোস্কোপের নিচে সবচেয়ে স্পষ্ট দেখা যায়। তাই ক্রোমোজোমের সংখ্যা গণনা এবং ক্যারিওটাইপ (Karyotype) তৈরির জন্য মেটাফেজ দশা সবচেয়ে উপযুক্ত।\n২. মেটাফেজ চেকপয়েন্ট (Spindle Assembly Checkpoint - SAC):\nমেটাফেজ থেকে অ্যানাফেজ দশায় যাওয়ার আগে কোষ একটি অত্যন্ত গুরুত্বপূর্ণ পরীক্ষা সম্পন্ন করে। একে SAC বলে। কোষ নিশ্চিত করে যে প্রতিটি ক্রোমোজোমের কাইনেটোকোর যেন সঠিকভাবে স্পিন্ডল তন্তুর সাথে যুক্ত হয়েছে। যদি একটি ক্রোমোজোমও সঠিকভাবে যুক্ত না হয়, তবে কোষ বিভাজন এখানেই আটকে যায়। এই মেকানিজমটি অপত্য কোষে ক্রোমোজোমের সংখ্যার ভারসাম্যহীনতা (যেমন: অ্যানিউপ্লয়েডি) রোধ করে।\n৩. মেটাকাইনেসিস (Metakinesis):\nপ্রো-মেটাফেজ দশা থেকে মেটাফেজ দশায় আসার সময় ক্রোমোজোমগুলো যে আন্দোলনের মাধ্যমে কোষের বিষুবীয় অঞ্চলে এসে পৌঁছায়, সেই ক্রোমোজোমের গতি বা সরণকে মেটাকাইনেসিস বলা হয়।\nকোষ বিভাজনের এই ধাপটি আরও ভালোভাবে বোঝার জন্য আমি কি আপনাকে একটি স্পিন্ডল তন্তুর প্রকারভেদের রেখাচিত্র (Diagram) তৈরি করে দেব, নাকি এই প্রক্রিয়ায় ব্যবহৃত কোলচিসিন (Colchicine) নামক রাসায়নিকের প্রভাব সম্পর্কে জানবেন যা মেটাফেজ দশাকে থামিয়ে দেয়?\n\n"},"labels":[],"copyright":"© 2026 Bholanath Debnath. All rights reserved."}</script><script>
+const $=id=>document.getElementById(id),m=JSON.parse($('lesson').textContent),viewer=$('viewer');let studentLabels=true;let language='en',selected=-1,open=true,queue=[],token=0,utterance;
+const tr=(en,bn)=>language==='en'?en:bn,tx=o=>o[language]||o.en||o.bn||'',synth=window.speechSynthesis;
+function stop(){token++;queue=[];if(synth)synth.cancel();$('speechStatus').textContent='';}
+function voices(){const list=synth?synth.getVoices().filter(v=>v.lang.toLowerCase().startsWith(language)):[];list.sort((a,b)=>Number(/Google/i.test(b.name))-Number(/Google/i.test(a.name)));$('voice').replaceChildren();list.forEach(v=>$('voice').add(new Option(v.name+' ('+v.lang+')',v.voiceURI)));$('listen').disabled=!list.length;if(!list.length)$('speechStatus').textContent=tr('No English voice is available on this device.','এই ডিভাইসে বাংলা কণ্ঠস্বর পাওয়া যায়নি।');else $('speechStatus').textContent='';}
+function render(){$('copyright').textContent=m.copyright||'© 2026 Bholanath Debnath. All rights reserved.';document.documentElement.lang=language;document.title=tx(m.title);$('heading').textContent=tx(m.title);$('lang').textContent=language==='en'?'বাংলা':'English';$('details').textContent=open?tr('Hide details','বিবরণ লুকান'):tr('Show details','বিবরণ দেখান');$('rotate').textContent=tr('Rotate','ঘোরান');$('reset').textContent=tr('Reset','আগের দৃশ্য');$('play').textContent=tr('Play / pause','চালু / বিরতি');$('listen').textContent=tr('Listen','শুনুন');$('stop').textContent=tr('Stop audio','শোনা বন্ধ');$('voiceLabel').textContent=tr('Voice','কণ্ঠস্বর');$('panel').hidden=!open;$('layout').classList.toggle('wide',!open);const h=m.labels[selected]||m;$('title').textContent=tx(h.title);$('description').textContent=tx(h.description);$('parts').replaceChildren();viewer.querySelectorAll('button').forEach(b=>b.remove());m.labels.forEach((h,i)=>{const b=document.createElement('button');b.textContent=tx(h.title);b.onclick=()=>choose(i);$('parts').append(b);const hot=document.createElement('button');hot.textContent=tx(h.title);hot.className='hot';hot.hidden=!studentLabels;hot.slot='hotspot-'+i;hot.dataset.position=h.position;hot.dataset.normal=h.normal;hot.onclick=()=>choose(i);viewer.append(hot);});voices();}
+$('toggleLabels').onclick=()=>{studentLabels=!studentLabels;render();};$('fullscreen').onclick=async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else await document.documentElement.requestFullscreen();}catch{$('status').textContent='Fullscreen is unavailable on this device.';}};
+function choose(i){stop();selected=i;open=true;render();}
+$('lang').onclick=()=>{stop();language=language==='en'?'bn':'en';render();};$('details').onclick=()=>{open=!open;render();};$('close').onclick=()=>{open=false;render();};$('rotate').onclick=()=>viewer.autoRotate=!viewer.autoRotate;$('reset').onclick=()=>{stop();selected=-1;viewer.autoRotate=false;viewer.cameraOrbit='auto auto auto';viewer.cameraTarget='auto auto auto';viewer.fieldOfView='auto';render();};$('play').onclick=()=>viewer.paused?viewer.play():viewer.pause();$('clips').onchange=e=>{viewer.animationName=e.target.value;viewer.currentTime=0;viewer.play();};$('stop').onclick=stop;
+$('listen').onclick=()=>{stop();const h=m.labels[selected]||m;const text=tx(h.title)+'. '+tx(h.description);const chosen=synth.getVoices().find(v=>v.voiceURI===$('voice').value);if(!chosen)return;queue=text.match(/[^.!?।\n]+[.!?।\n]*/g)||[text];queue=queue.flatMap(s=>s.match(/.{1,180}(?:\s|$)|.{1,180}/g)||[]);const run=token;function next(){if(run!==token)return;const chunk=queue.shift();if(!chunk){$('speechStatus').textContent=tr('Finished.','শেষ।');return;}utterance=new SpeechSynthesisUtterance(chunk);utterance.voice=chosen;utterance.lang=chosen.lang;utterance.rate=0.9;utterance.onend=next;utterance.onerror=e=>{if(run===token)$('speechStatus').textContent=tr('Speech unavailable: ','কণ্ঠস্বর চালু হয়নি: ')+e.error;};synth.speak(utterance);}next();};if(synth)synth.addEventListener('voiceschanged',voices);window.addEventListener('pagehide',stop);
+viewer.addEventListener('load',()=>{$('status').textContent=tr('Drag to rotate. Tap labels for details.','ঘোরাতে টানুন। বিবরণ দেখতে লেবেল চাপুন।');const clips=viewer.availableAnimations||[];$('play').disabled=!clips.length;$('clips').hidden=clips.length<2;$('clips').replaceChildren();clips.forEach(c=>$('clips').add(new Option(c,c)));});viewer.addEventListener('error',()=>{$('status').textContent=tr('Model could not load. Check the published GLB path.','মডেল লোড হয়নি। প্রকাশিত GLB পাথ পরীক্ষা করুন।');});let studentBlob=null;$('studentLocal').onclick=()=>$('studentGLB').click();$('studentGLB').onchange=e=>{const f=e.target.files[0];if(!f)return;if(studentBlob)URL.revokeObjectURL(studentBlob);studentBlob=URL.createObjectURL(f);loadCombined(f);};render();customElements.whenDefined('model-viewer').then(()=>{loadCombined(m.src);viewer.alt=tx(m.title);});setTimeout(()=>{if(!customElements.get('model-viewer'))$('status').textContent=tr('Connect to the internet and reload to load the viewer.','ভিউয়ার খুলতে ইন্টারনেট সংযোগ দিয়ে আবার খুলুন।');},12000);
+
+// Playback and saved teaching actions are also included in exported student pages.
+let actionEnd=null, actionRenderKey='';
+const lessonNow=()=>m;
+function seekTo(t){viewer.pause();actionEnd=null;viewer.currentTime=Math.max(0,Math.min(Number(t)||0,viewer.duration||0));}
+$('restartAnim').onclick=()=>{seekTo(0);if((viewer.availableAnimations||[]).length)viewer.play({repetitions:$('loopAnim').checked?Infinity:1});};
+$('stepBack').onclick=()=>seekTo(viewer.currentTime-.1);
+$('stepNext').onclick=()=>seekTo(viewer.currentTime+.1);
+$('seekAnim').oninput=e=>seekTo(e.target.value);
+$('speed').onchange=e=>viewer.timeScale=Number(e.target.value);
+$('loopAnim').onchange=()=>{if(!viewer.paused)viewer.play({repetitions:$('loopAnim').checked?Infinity:1});};
+$('play').onclick=()=>{actionEnd=null;if(viewer.paused)viewer.play({repetitions:$('loopAnim').checked?Infinity:1});else viewer.pause();};
+$('clips').onchange=e=>{actionEnd=null;viewer.pause();viewer.animationName=e.target.value;viewer.currentTime=0;};
+async function runTeachingAction(a){
+ actionEnd=null;viewer.pause();
+ if(a.clip&&(viewer.availableAnimations||[]).includes(a.clip))viewer.animationName=a.clip;
+ await viewer.updateComplete;
+ if(a.orbit)viewer.cameraOrbit=a.orbit;
+ if(a.target)viewer.cameraTarget=a.target;
+ if(a.fov)viewer.fieldOfView=a.fov;
+ const t=Math.max(0,Math.min(a.start||0,viewer.duration||0));viewer.currentTime=t;
+ if(a.kind==='segment'&&viewer.duration>0){actionEnd=Math.min(a.end,viewer.duration);if(actionEnd>t)viewer.play({repetitions:1});}
+}
+function refreshActionButtons(){
+ const list=lessonNow().actions||[],key=JSON.stringify([list,language]);if(key===actionRenderKey)return;actionRenderKey=key;
+ $('actionButtons').replaceChildren();list.forEach(a=>{const b=document.createElement('button');b.textContent=tx(a.title)||'Action';b.onclick=()=>runTeachingAction(a);$('actionButtons').append(b);});
+}
+function controlTick(){
+ const has=(viewer.availableAnimations||[]).length>0,d=Number(viewer.duration)||0,t=Number(viewer.currentTime)||0;
+ for(const id of ['restartAnim','stepBack','stepNext','seekAnim','speed','loopAnim'])$(id).disabled=!has;
+ $('seekAnim').max=String(d||1);$('seekAnim').value=String(t);$('timeAnim').textContent=t.toFixed(1)+' / '+d.toFixed(1)+' s';
+ if(actionEnd!==null&&t>=actionEnd-.025){viewer.pause();viewer.currentTime=actionEnd;actionEnd=null;}
+ refreshActionButtons();requestAnimationFrame(controlTick);
+}
+viewer.addEventListener('load',()=>{actionEnd=null;viewer.timeScale=Number($('speed').value);});
+requestAnimationFrame(controlTick);
+
+// Merge only compatible, simultaneous animation channels. Never discard conflicts.
+function combineGLB(buffer){
+ const input=new Uint8Array(buffer),dv=new DataView(buffer);
+ if(input.length<20||dv.getUint32(0,true)!==0x46546c67||dv.getUint32(4,true)!==2||dv.getUint32(8,true)!==input.length)throw Error('Invalid GLB 2.0 file.');
+ const chunks=[];let at=12;
+ while(at<input.length){if(at+8>input.length)throw Error('Truncated GLB chunk.');const n=dv.getUint32(at,true),type=dv.getUint32(at+4,true);if(at+8+n>input.length)throw Error('Truncated GLB data.');chunks.push({type,data:input.slice(at+8,at+8+n)});at+=8+n;}
+ if(chunks[0]?.type!==0x4e4f534a)throw Error('Missing GLB JSON.');
+ const doc=JSON.parse(new TextDecoder().decode(chunks[0].data)),clips=doc.animations||[];
+ if(!clips.length)return {bytes:buffer,clips:0,channels:0};
+ const out={name:'Full_Lesson_Animation',samplers:[],channels:[]},seen=new Map();
+ for(const clip of clips){for(const channel of clip.channels||[]){
+  if(channel.target?.extensions||!Number.isInteger(channel.target?.node))throw Error('This animation uses an unsupported target extension.');
+  const key=channel.target.node+':'+channel.target.path,sampler=clip.samplers[channel.sampler];
+  if(!sampler)throw Error('Invalid animation sampler.');
+  const signature=JSON.stringify([sampler.input,sampler.output,sampler.interpolation||'LINEAR']);
+  if(seen.has(key)){if(seen.get(key)===signature)continue;throw Error('Cannot safely combine: multiple clips animate the same property of '+(doc.nodes?.[channel.target.node]?.name||key)+'. These are alternative actions. Export Blender using Scene animation with Split by Object off.');}
+  seen.set(key,signature);out.channels.push({...channel,sampler:out.samplers.length});out.samplers.push(sampler);
+ }}
+ if(!out.channels.length)throw Error('Animation clips have no supported channels.');
+ doc.animations=[out];const encoded=new TextEncoder().encode(JSON.stringify(doc)),padded=new Uint8Array(Math.ceil(encoded.length/4)*4);padded.fill(32);padded.set(encoded);chunks[0].data=padded;
+ const size=12+chunks.reduce((n,c)=>n+8+c.data.length,0),result=new ArrayBuffer(size),v=new DataView(result),bytes=new Uint8Array(result);
+ v.setUint32(0,0x46546c67,true);v.setUint32(4,2,true);v.setUint32(8,size,true);at=12;
+ for(const c of chunks){v.setUint32(at,c.data.length,true);v.setUint32(at+4,c.type,true);bytes.set(c.data,at+8);at+=8+c.data.length;}
+ return {bytes:result,clips:clips.length,channels:out.channels.length};
+}
+let combinedBytes=null,combinedURL=null,mergeTicket=0;
+async function loadCombined(source){
+ const ticket=++mergeTicket;combinedBytes=null;
+ $('status').textContent='Loading and combining animation clips…';
+ try{
+  const buffer=source instanceof Blob?await source.arrayBuffer():await (async()=>{const r=await fetch(source);if(!r.ok)throw Error('Model request failed: HTTP '+r.status);return r.arrayBuffer();})();
+  const result=combineGLB(buffer);if(ticket!==mergeTicket)return;
+  combinedBytes=result.bytes;
+  if(combinedURL)URL.revokeObjectURL(combinedURL);
+  combinedURL=URL.createObjectURL(new Blob([combinedBytes],{type:'model/gltf-binary'}));
+  viewer.src=combinedURL;
+  viewer.dataset.mergeSummary=result.clips?result.clips+' input clip(s) → 1 synchronized clip; '+result.channels+' channels.':'This GLB has no animation tracks. Static model loaded.';
+ }catch(err){if(ticket!==mergeTicket)return;viewer.removeAttribute('src');$('status').textContent=err.message+' For local files use Open GLB. No animation was discarded.';}
+}
+viewer.addEventListener('load',async()=>{
+ const names=viewer.availableAnimations||[];
+ if(names.length){viewer.animationName=names[0];await viewer.updateComplete;viewer.pause();viewer.currentTime=0;}
+ $('status').textContent=viewer.dataset.mergeSummary||'Model loaded.';
+});
+</script></html>
