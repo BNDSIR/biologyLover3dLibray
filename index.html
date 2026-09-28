@@ -1,0 +1,138 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>3D Lesson</title><script type="module" src="https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script><style>
+*{box-sizing:border-box}body{margin:0;background:#edf3f5;color:#16333d;font:16px system-ui,'Nirmala UI',sans-serif}header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;gap:12px}h1{font-size:22px;margin:0}button,select{font:inherit;border:1px solid #b0c6cd;background:white;color:#16333d;padding:9px 12px;border-radius:8px;cursor:pointer}button:disabled{opacity:.45}button:focus-visible,input:focus-visible{outline:3px solid #e2a83b}main{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:12px;padding:0 12px}main.wide{grid-template-columns:1fr}#stage{background:#173443;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:78vh;min-height:360px}model-viewer{width:100%;flex:1;min-height:0;background:radial-gradient(ellipse,#547483,#172f40)}.controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;background:#f6fafb}.timeline{display:flex;align-items:center;gap:10px;flex:1 0 100%}.timeline input{flex:1;min-width:90px;accent-color:#077d83}output{font-size:13px;font-variant-numeric:tabular-nums}#panel{background:white;border-radius:14px;overflow:auto;padding:16px;max-height:78vh}.panelTop{display:flex;justify-content:flex-end;gap:8px}p{line-height:1.65;white-space:pre-wrap}#parts button{display:block;width:100%;text-align:left;margin:7px 0}.hot{font-size:12px;padding:5px 8px;background:#fffbea;color:#18343c;border:1px solid #c4a850}#stage:fullscreen{height:100dvh;width:100%;border-radius:0}#panel:fullscreen{max-height:none;width:100%;height:100%;padding:28px;background:white}#status,#speechStatus{font-size:13px;padding:0 18px}footer{text-align:center;padding:14px;font-size:12px;color:#526c74}[hidden]{display:none!important}#voice{max-width:100%;width:100%;margin-top:8px}#actions{display:flex;gap:6px;flex-wrap:wrap}@media(max-width:760px){main{grid-template-columns:1fr}#stage{height:63dvh}#panel{max-height:none}h1{font-size:18px}.controls button,.controls select{padding:8px} }
+#loadingLogo{position:fixed;inset:0;background:#fff;z-index:9999;display:grid;place-items:center}#loadingLogo img{max-width:220px;max-height:180px;object-fit:contain}header{flex-wrap:wrap}</style></head><body><div id="loadingLogo" hidden role="status" aria-label="Loading lesson"><img id="logo" alt=""></div><header><h1 id="heading">3D Lesson</h1><select id="lessonSelect" aria-label="Select lesson"></select><button id="lang">বাংলা</button></header><p id="status" role="status"></p><button id="restore" hidden>Show animation</button><main id="layout"><section id="stage"><model-viewer id="viewer" camera-controls touch-action="pan-y" shadow-intensity="0.3" animation-crossfade-duration="0" alt="Interactive teaching model"></model-viewer><div class="controls"><div class="timeline"><input id="seek" aria-label="Animation timeline" type="range" min="0" max="1" step="0.01" value="0"><output id="time">0.0 / 0.0 s</output></div><button id="play" disabled>▶ Play</button><select id="speed" aria-label="Animation speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select><button id="details">Details</button><button id="full" aria-label="Animation fullscreen">⛶</button><button id="closeStage" aria-label="Close animation">×</button><div id="actions"></div></div></section><aside id="panel"><div class="panelTop"><button id="fullDetails" aria-label="Details fullscreen">⛶</button><button id="closeDetails" aria-label="Close details">×</button></div><h2 id="title"></h2><p id="description"></p><button id="read">▶ Read</button><select id="voice" aria-label="Reading voice"></select><p id="speechStatus" role="status"></p><div id="parts"></div></aside></main><footer id="copyright"></footer><script id="lesson" type="application/json">{"title": {"en": "3D Biology Lessons", "bn": "\u09e9\u09a1\u09bf \u099c\u09c0\u09ac\u09ac\u09bf\u099c\u09cd\u099e\u09be\u09a8 \u09aa\u09be\u09a0"}, "description": {"en": "Select a lesson.", "bn": "\u098f\u0995\u099f\u09bf \u09aa\u09be\u09a0 \u09a8\u09bf\u09b0\u09cd\u09ac\u09be\u099a\u09a8 \u0995\u09b0\u09c1\u09a8\u0964"}, "labels": []}</script><script>
+'use strict';
+const $=id=>document.getElementById(id),viewer=$('viewer'),synth=window.speechSynthesis;let m=JSON.parse($('lesson').textContent);
+let language='en',selected=-1,detailsOpen=true,speaking=false,speechToken=0,utterance=null,endAt=null,modelURL=null;
+const tr=(en,bn)=>language==='bn'?bn:en,tx=o=>o?.[language]||o?.en||o?.bn||'';
+function stopSpeech(){speechToken++;speaking=false;if(synth)synth.cancel();$('read').textContent=tr('▶ Read','▶ পড়ে শোনান');}
+function voices(){const old=$('voice').value,vs=synth?synth.getVoices().filter(v=>v.lang.toLowerCase().startsWith(language)):[];vs.sort((a,b)=>Number(/google/i.test(b.name))-Number(/google/i.test(a.name)));$('voice').replaceChildren();vs.forEach(v=>$('voice').add(new Option(v.name+' · '+v.lang,v.voiceURI)));if(vs.some(v=>v.voiceURI===old))$('voice').value=old;$('read').disabled=!vs.length;$('speechStatus').textContent=vs.length?(vs.some(v=>/google/i.test(v.name))?'':tr('Using a voice available on this device.','এই ডিভাইসে উপলব্ধ কণ্ঠস্বর ব্যবহার করা হচ্ছে।')):tr('No English reading voice is available on this device.','এই ডিভাইসে বাংলা কণ্ঠস্বর পাওয়া যায়নি।');}
+function render(){document.documentElement.lang=language;$('heading').textContent=tx(m.title);document.title=tx(m.title);$('lang').textContent=language==='en'?'বাংলা':'English';$('copyright').textContent=m.copyright||'© 2026 Bholanath Debnath. All rights reserved.';$('panel').hidden=!detailsOpen;$('layout').classList.toggle('wide',!detailsOpen);$('details').textContent=tr('Details','বিবরণ');$('restore').textContent=tr('Show animation','অ্যানিমেশন দেখান');const h=m.labels[selected]||m;$('title').textContent=tx(h.title);$('description').textContent=tx(h.description);$('read').textContent=speaking?tr('■ Stop reading','■ পড়া বন্ধ'):tr('▶ Read','▶ পড়ে শোনান');$('parts').replaceChildren();viewer.querySelectorAll('[slot^="hotspot-"]').forEach(b=>b.remove());(m.labels||[]).forEach((h,i)=>{const choose=()=>{stopSpeech();selected=i;detailsOpen=true;render();};const b=document.createElement('button');b.textContent=tx(h.title);b.onclick=choose;$('parts').append(b);if(h.placed!==false&&h.position){const hot=document.createElement('button');hot.className='hot';hot.slot='hotspot-'+i;hot.dataset.position=h.position;hot.dataset.normal=h.normal;hot.textContent=tx(h.title);hot.onclick=choose;viewer.append(hot);}});$('actions').replaceChildren();if(m.showStudentActions)(m.actions||[]).forEach(a=>{const b=document.createElement('button');b.textContent=tx(a.title);b.onclick=async()=>{viewer.pause();if(a.clip&&(viewer.availableAnimations||[]).includes(a.clip))viewer.animationName=a.clip;await viewer.updateComplete;if(a.orbit)viewer.cameraOrbit=a.orbit;if(a.target)viewer.cameraTarget=a.target;if(a.fov)viewer.fieldOfView=a.fov;viewer.currentTime=Math.min(a.start||0,viewer.duration||0);endAt=null;if(a.kind==='segment'){endAt=Math.min(a.end,viewer.duration);viewer.play({repetitions:1});}};$('actions').append(b);});voices();}
+async function full(el){try{if(document.fullscreenElement)await document.exitFullscreen();else await el.requestFullscreen();}catch{$('status').textContent=tr('Fullscreen is unavailable in this browser.','এই ব্রাউজারে পূর্ণ পর্দা উপলব্ধ নয়।');}}
+$('lang').onclick=()=>{stopSpeech();language=language==='en'?'bn':'en';render();};$('details').onclick=()=>{detailsOpen=!detailsOpen;render();};$('closeDetails').onclick=async()=>{stopSpeech();if(document.fullscreenElement===$('panel'))await document.exitFullscreen();detailsOpen=false;render();};$('full').onclick=()=>full($('stage'));$('fullDetails').onclick=()=>full($('panel'));$('closeStage').onclick=async()=>{viewer.pause();if(document.fullscreenElement===$('stage'))await document.exitFullscreen();$('stage').hidden=true;$('restore').hidden=false;};$('restore').onclick=()=>{$('stage').hidden=false;$('restore').hidden=true;};
+$('play').onclick=()=>{endAt=null;if(viewer.paused){if(viewer.currentTime>=viewer.duration-.02)viewer.currentTime=0;viewer.play({repetitions:1});}else viewer.pause();};$('seek').oninput=e=>{viewer.pause();endAt=null;viewer.currentTime=Number(e.target.value);};$('speed').onchange=e=>viewer.timeScale=Number(e.target.value);
+$('read').onclick=()=>{if(speaking){stopSpeech();return;}const v=synth?.getVoices().find(v=>v.voiceURI===$('voice').value);if(!v)return;stopSpeech();speaking=true;const token=speechToken,h=m.labels[selected]||m,text=tx(h.title)+'. '+tx(h.description),chunks=text.match(/[^.!?।\n]+[.!?।\n]*/g)||[text];$('read').textContent=tr('■ Stop reading','■ পড়া বন্ধ');function next(){if(token!==speechToken)return;const chunk=chunks.shift();if(!chunk){stopSpeech();return;}utterance=new SpeechSynthesisUtterance(chunk);utterance.voice=v;utterance.lang=v.lang;utterance.rate=.9;utterance.onend=next;utterance.onerror=()=>{if(token===speechToken){stopSpeech();$('speechStatus').textContent=tr('Reading voice could not start.','কণ্ঠস্বর চালু হয়নি।');}};synth.speak(utterance);}next();};$('voice').onchange=stopSpeech;if(synth)synth.addEventListener('voiceschanged',voices);window.addEventListener('pagehide',()=>{stopSpeech();if(modelURL)URL.revokeObjectURL(modelURL);});
+function tick(){const has=(viewer.availableAnimations||[]).length>0,t=viewer.currentTime||0,d=viewer.duration||0;for(const id of ['play','seek','speed'])$(id).disabled=!has;$('seek').max=d||1;$('seek').value=t;$('time').textContent=t.toFixed(1)+' / '+d.toFixed(1)+' s';$('play').textContent=viewer.paused?tr('▶ Play','▶ চালু'):tr('❚❚ Pause','❚❚ বিরতি');if(endAt!==null&&t>=endAt-.025){viewer.pause();viewer.currentTime=endAt;endAt=null;}requestAnimationFrame(tick);}render();requestAnimationFrame(tick);
+function parseCSV(text){text=text.replace(/^\uFEFF/,'');const rows=[];let row=[],cell='',quoted=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'){if(quoted&&text[i+1]==='"'){cell+='"';i++;}else if(quoted)quoted=false;else if(!cell.length)quoted=true;else throw Error('Unexpected quote');}else if(c===','&&!quoted){row.push(cell);cell='';}else if((c==='\n'||c==='\r')&&!quoted){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(v=>v.trim()))rows.push(row);row=[];cell='';}else cell+=c;}if(quoted)throw Error('Unclosed quoted cell');row.push(cell);if(row.some(v=>v.trim()))rows.push(row);return rows;}
+
+function combineGLB(buffer){
+ const input=new Uint8Array(buffer),dv=new DataView(buffer);
+ if(input.length<20||dv.getUint32(0,true)!==0x46546c67||dv.getUint32(4,true)!==2||dv.getUint32(8,true)!==input.length)throw Error('Invalid GLB 2.0 file.');
+ const chunks=[];let at=12;
+ while(at<input.length){if(at+8>input.length)throw Error('Truncated GLB chunk.');const n=dv.getUint32(at,true),type=dv.getUint32(at+4,true);if(at+8+n>input.length)throw Error('Truncated GLB data.');chunks.push({type,data:input.slice(at+8,at+8+n)});at+=8+n;}
+ if(chunks[0]?.type!==0x4e4f534a)throw Error('Missing GLB JSON.');
+ const doc=JSON.parse(new TextDecoder().decode(chunks[0].data)),clips=doc.animations||[];
+ if(!clips.length)return {bytes:buffer,clips:0,channels:0};
+ const out={name:'Full_Lesson_Animation',samplers:[],channels:[]},seen=new Map();
+ for(const clip of clips){for(const channel of clip.channels||[]){
+  if(channel.target?.extensions||!Number.isInteger(channel.target?.node))throw Error('This animation uses an unsupported target extension.');
+  const key=channel.target.node+':'+channel.target.path,sampler=clip.samplers[channel.sampler];
+  if(!sampler)throw Error('Invalid animation sampler.');
+  const signature=JSON.stringify([sampler.input,sampler.output,sampler.interpolation||'LINEAR']);
+  if(seen.has(key)){if(seen.get(key)===signature)continue;throw Error('Cannot safely combine: multiple clips animate the same property of '+(doc.nodes?.[channel.target.node]?.name||key)+'. These are alternative actions. Export Blender using Scene animation with Split by Object off.');}
+  seen.set(key,signature);out.channels.push({...channel,sampler:out.samplers.length});out.samplers.push(sampler);
+ }}
+ if(!out.channels.length)throw Error('Animation clips have no supported channels.');
+ doc.animations=[out];const encoded=new TextEncoder().encode(JSON.stringify(doc)),padded=new Uint8Array(Math.ceil(encoded.length/4)*4);padded.fill(32);padded.set(encoded);chunks[0].data=padded;
+ const size=12+chunks.reduce((n,c)=>n+8+c.data.length,0),result=new ArrayBuffer(size),v=new DataView(result),bytes=new Uint8Array(result);
+ v.setUint32(0,0x46546c67,true);v.setUint32(4,2,true);v.setUint32(8,size,true);at=12;
+ for(const c of chunks){v.setUint32(at,c.data.length,true);v.setUint32(at+4,c.type,true);bytes.set(c.data,at+8);at+=8+c.data.length;}
+ return {bytes:result,clips:clips.length,channels:out.channels.length};
+}
+
+
+/* ================= EDIT THESE SETTINGS =================
+  1. Replace logoURL with your direct HTTPS PNG/JPG/SVG image URL.
+  2. Set each lesson's GLB and CSV paths (same-site paths or CORS-enabled URLs).
+  3. Save CSV files as UTF-8. CSV sample and column instructions are below.
+  Host index.html + CSV + GLB on GitHub Pages, or use localhost.
+  No model is included in this HTML template.
+======================================================== */
+const CONFIG={
+ logoURL:'https://YOUR-WEBSITE.example/logo.png',
+ copyright:'© 2026 Bholanath Debnath. All rights reserved.',
+ lessons:[
+  {id:'prophase',title:{en:'Prophase',bn:'প্রোফেজ'},glb:'models/prophase.glb',csv:'lessons/prophase.csv'},
+  {id:'metaphase',title:{en:'Metaphase',bn:'মেটাফেজ'},glb:'models/metaphase.glb',csv:'lessons/metaphase.csv'},
+  {id:'anaphase',title:{en:'Anaphase',bn:'অ্যানাফেজ'},glb:'models/anaphase.glb',csv:'lessons/anaphase.csv'},
+  {id:'telophase',title:{en:'Telophase',bn:'টেলোফেজ'},glb:'models/telophase.glb',csv:'lessons/telophase.csv'}
+ ]
+};
+/* CSV columns:
+ kind,label_en,label_bn,description_en,description_bn,x,y,z,nx,ny,nz
+
+ kind=lesson: one optional row for the lesson introduction; coordinates blank.
+ kind=label: one row per label. x/y/z in GLB model coordinates (metres), normal
+ nx/ny/nz optional (defaults 0,1,0). All three positions blank = list-only label.
+ Quoted fields may contain commas, quotes (escaped as ""), and line breaks.
+ Existing 4-column CSVs also work: label_en,label_bn,description_en,description_bn.
+ With no coordinates, those labels appear in the detail list only.
+ Blender and exported GLB axes can differ. Use coordinates from the teacher editor.
+ Fixed coordinate labels do not follow moving/deforming chromosomes.
+
+ Copy this CSV into each configured lesson CSV, then edit it:
+kind,label_en,label_bn,description_en,description_bn,x,y,z,nx,ny,nz
+lesson,Lesson title,পাঠের নাম,Write the lesson introduction.,পাঠের পরিচিতি লিখুন।,,,,,,
+label,Chromosome,ক্রোমোজোম,Write your explanation.,আপনার ব্যাখ্যা লিখুন।,,,,,,
+label,Nucleus,নিউক্লিয়াস,Example position: replace with your model coordinates.,উদাহরণের স্থানাঙ্ক নিজের মডেল অনুযায়ী বদলান।,0,0,0,0,1,0
+*/
+function lessonFromCSV(text,config){
+ const rows=parseCSV(text);if(rows.length<2)throw Error('CSV needs a header and at least one data row.');
+ const headers=rows.shift().map(x=>x.trim().toLowerCase());if(new Set(headers).size!==headers.length)throw Error('Duplicate CSV headers.');
+ for(const col of ['label_en','label_bn','description_en','description_bn'])if(!headers.includes(col))throw Error('CSV missing column: '+col);
+ const lesson={title:{...config.title},description:{en:'',bn:''},labels:[],copyright:CONFIG.copyright};let intro=false;
+ rows.forEach((r,i)=>{
+  if(r.length!==headers.length)throw Error('CSV column count mismatch at row '+(i+2));
+  const cell=k=>(r[headers.indexOf(k)]||'').trim(),kind=cell('kind')||'label';
+  const title={en:cell('label_en'),bn:cell('label_bn')},description={en:cell('description_en'),bn:cell('description_bn')};
+  if(kind==='lesson'){if(intro)throw Error('Use only one lesson introduction row.');intro=true;if(title.en||title.bn)lesson.title=title;lesson.description=description;return;}
+  if(kind!=='label')throw Error('Unknown CSV kind in row '+(i+2));
+  if(!title.en&&!title.bn)throw Error('Missing label title in row '+(i+2));
+  const pos=['x','y','z'].map(cell),normal=['nx','ny','nz'].map(cell);let placed=false,position='',norm='0 1 0';
+  if(pos.some(Boolean)){if(pos.some(v=>v===''||!Number.isFinite(Number(v))))throw Error('Set all x/y/z coordinates in row '+(i+2));placed=true;position=pos.map(Number).join(' ');}
+  if(normal.some(Boolean)){if(normal.some(v=>v===''||!Number.isFinite(Number(v)))||Math.hypot(...normal.map(Number))===0)throw Error('Invalid normal vector in row '+(i+2));norm=normal.map(Number).join(' ');}
+  lesson.labels.push({title,description,position,normal:norm,placed});
+ });return lesson;
+}
+let pending=null,loadSerial=0;
+function populateLessons(){const value=$('lessonSelect').value;$('lessonSelect').replaceChildren();CONFIG.lessons.forEach((c,i)=>$('lessonSelect').add(new Option(tx(c.title),String(i))));if(value)$('lessonSelect').value=value;}
+const baseRender=render;render=function(){baseRender();populateLessons();};
+async function selectLesson(index){
+ const serial=++loadSerial;if(pending)pending.abort();pending=new AbortController();const signal=pending.signal;
+ stopSpeech();viewer.pause();endAt=null;selected=-1;viewer.removeAttribute('src');
+ if(modelURL){URL.revokeObjectURL(modelURL);modelURL=null;}
+ const config=CONFIG.lessons[index];if(!config)return;
+ m={title:config.title,description:{en:'',bn:''},labels:[],copyright:CONFIG.copyright};render();$('lessonSelect').value=String(index);
+ $('status').textContent='';$('stage').hidden=false;$('restore').hidden=true;
+ const configuredLogo=CONFIG.logoURL&&!CONFIG.logoURL.includes('YOUR-WEBSITE.example');
+ $('loadingLogo').hidden=!configuredLogo;if(configuredLogo)$('logo').src=CONFIG.logoURL;
+ try{
+  if(location.protocol==='file:')throw Error('Use localhost or GitHub Pages so the HTML can fetch GLB and CSV files.');
+  const read=async(url,type)=>{const response=await fetch(url,{signal});if(!response.ok)throw Error(url+' — HTTP '+response.status);return type==='text'?response.text():response.arrayBuffer();};
+  const [csv,buffer]=await Promise.all([read(config.csv,'text'),read(config.glb,'binary')]);
+  if(serial!==loadSerial)return;
+  const next=lessonFromCSV(csv,config),result=combineGLB(buffer);
+  await customElements.whenDefined('model-viewer');if(serial!==loadSerial)return;
+  m=next;render();$('lessonSelect').value=String(index);
+  modelURL=URL.createObjectURL(new Blob([result.bytes],{type:'model/gltf-binary'}));
+  const expected=modelURL;
+  await new Promise((resolve,reject)=>{
+   const cleanup=()=>{viewer.removeEventListener('load',done);viewer.removeEventListener('error',error);signal.removeEventListener('abort',aborted);clearTimeout(timer);};
+   const done=()=>{if(viewer.src===expected){cleanup();resolve();}};
+   const error=()=>{cleanup();reject(Error('GLB could not be displayed.'));};
+   const aborted=()=>{cleanup();reject(new DOMException('Aborted','AbortError'));};
+   const timer=setTimeout(()=>{cleanup();reject(Error('Model loading timed out. Check internet and model size.'));},60000);
+   viewer.addEventListener('load',done);viewer.addEventListener('error',error);signal.addEventListener('abort',aborted,{once:true});viewer.src=expected;
+  });
+  if(serial!==loadSerial)return;
+  const clips=viewer.availableAnimations||[];if(clips.length){viewer.animationName=clips[0];await viewer.updateComplete;if(serial!==loadSerial)return;viewer.pause();viewer.currentTime=0;}
+  $('loadingLogo').hidden=true;
+  $('status').textContent=clips.length?'':tr('Static model — no animation tracks.','স্থির মডেল — অ্যানিমেশন নেই।');
+ }catch(error){if(serial!==loadSerial||error.name==='AbortError')return;$('loadingLogo').hidden=true;$('status').textContent=error.message;}
+}
+$('logo').onerror=()=>{$('loadingLogo').hidden=true;$('status').textContent=tr('Logo URL could not load.','লোগোর URL লোড হয়নি।');};
+$('lessonSelect').onchange=e=>selectLesson(Number(e.target.value));populateLessons();
+// No placeholder logo is shown: set your own URL above to enable the logo-only overlay.
+customElements.whenDefined('model-viewer').then(()=>selectLesson(0));
+setTimeout(()=>{if(!customElements.get('model-viewer')){$('loadingLogo').hidden=true;$('status').textContent='Internet is required to load the 3D viewer. Reconnect and reload.';}},12000);
+</script></body></html>
