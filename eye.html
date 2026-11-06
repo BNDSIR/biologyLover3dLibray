@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Interactive Human Eye Anatomy</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background: radial-gradient(circle at center, #2a2a35 0%, #101014 100%); 
+            color: #fff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        #canvas-container { 
+            width: 100vw; 
+            height: 100vh; 
+            display: block; 
+        }
+        
+        /* Modern Glassmorphism UI for Students */
+        .ui-panel { 
+            position: absolute; 
+            bottom: 30px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(20, 25, 30, 0.6); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 20px 30px; 
+            border-radius: 20px; 
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 15px;
+        }
+        .control-group:last-child { margin-bottom: 0; }
+
+        .icon-container {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .icon-container svg { width: 22px; height: 22px; fill: #4da8da; }
+
+        .slider-wrapper { flex-grow: 1; display: flex; flex-direction: column; }
+        
+        .slider-label {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            color: #e0e0e0;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        /* Custom styling for sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4da8da;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(77, 168, 218, 0.5);
+            transition: transform 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+        
+        .loading-screen {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            font-weight: bold;
+            color: #4da8da;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading" class="loading-screen">Loading Eye Model...</div>
+<div id="canvas-container"></div>
+
+<div class="ui-panel">
+    <!-- Torch / Pupillary Reflex -->
+    <div class="control-group">
+        <div class="icon-container" title="Light Source">
+            <!-- Flashlight SVG -->
+            <svg viewBox="0 0 24 24"><path d="M7.24,5.43,5.12,3.31,2.83,5.6l2.12,2.12c-.52.92-.81,1.96-.81,3.08,0,3.36,2.4,6.2,5.6,6.86v3.34h4.4v-3.34c3.2-.66,5.6-3.5,5.6-6.86,0-1.12-.29-2.16-.81-3.08l2.12-2.12-2.29-2.29-2.12,2.12C12.79,4.52,11.83,4.2,10.8,4.2c-1.03,0-1.99.32-2.88.9ZM10.8,6.2c2.53,0,4.6,2.07,4.6,4.6s-2.07,4.6-4.6,4.6-4.6-2.07-4.6-4.6,2.07-4.6,4.6-4.6Z"/></svg>
+        </div>
+        <div class="slider-wrapper">
+            <div class="slider-label">Light Intensity (Pupillary Reflex)</div>
+            <input type="range" id="lightSlider" min="0" max="1" step="0.01" value="0.5">
+        </div>
+    </div>
+
+    <!-- Object Distance / Accommodation -->
+    <div class="control-group">
+        <div class="icon-container" title="Focal Object">
+            <!-- Target/Eye SVG -->
+            <svg viewBox="0 0 24 24"><path d="M12,4.5C7,4.5 2.73,7.61 1,12c1.73,4.39 6,7.5 11,7.5s9.27,-3.11 11,-7.5c-1.73,-4.39 -6,-7.5 -11,-7.5zM12,17c-2.76,0 -5,-2.24 -5,-5s2.24,-5 5,-5 5,2.24 5,5 -2.24,5 -5,5zM12,9c-1.66,0 -3,1.34 -3,3s1.34,3 3,3 3,-1.34 3,-3 -1.34,-3 -3,-3z"/></svg>
+        </div>
+        <div class="slider-wrapper">
+            <div class="slider-label">Object Distance (Accommodation)</div>
+            <input type="range" id="focusSlider" min="0" max="1" step="0.01" value="0">
+        </div>
+    </div>
+
+    <!-- Cross Section / Slicer -->
+    <div class="control-group">
+        <div class="icon-container" title="Cross Section Slicer">
+            <!-- Scissors/Slice SVG -->
+            <svg viewBox="0 0 24 24"><path d="M10,6.5A2.5,2.5 0 0,0 7.5,9A2.5,2.5 0 0,0 10,11.5A2.5,2.5 0 0,0 12.5,9A2.5,2.5 0 0,0 10,6.5M10,8A1,1 0 0,1 11,9A1,1 0 0,1 10,10A1,1 0 0,1 9,9A1,1 0 0,1 10,8M10,12.5A2.5,2.5 0 0,0 7.5,15A2.5,2.5 0 0,0 10,17.5A2.5,2.5 0 0,0 12.5,15A2.5,2.5 0 0,0 10,12.5M10,14A1,1 0 0,1 11,15A1,1 0 0,1 10,16A1,1 0 0,1 9,15A1,1 0 0,1 10,14M20.91,6.09L15,12L20.91,17.91L19.5,19.31L13.59,13.41L12.5,14.5L10,12L12.5,9.5L13.59,10.59L19.5,4.68L20.91,6.09Z"/></svg>
+        </div>
+        <div class="slider-wrapper">
+            <div class="slider-label">Slice Open (View Inner Anatomy)</div>
+            <input type="range" id="clipSlider" min="-1.2" max="1.2" step="0.01" value="1.2">
+        </div>
+    </div>
+</div>
+
+<!-- Three.js Modules -->
+<script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
+    import { GLTFLoader } from 'https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(2.5, 0.5, 2.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.localClippingEnabled = true; // Crucial for cross-section
+    document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+
+    // Cinematic Lighting Setup
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+    
+    const mainLight = new THREE.DirectionalLight(0xffffff, 2.5);
+    mainLight.position.set(5, 10, 5);
+    scene.add(mainLight);
+    
+    const fillLight = new THREE.DirectionalLight(0xaaccff, 1.0);
+    fillLight.position.set(-5, 0, -5);
+    scene.add(fillLight);
+
+    // Cross-Section Plane
+    const crossSectionPlane = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1.2);
+
+    let irisMesh, lensMesh, zonulesMesh;
+
+    // Load GLB
+    const loader = new GLTFLoader();
+    
+    // ⚠️ IMPORTANT: Replace 'eye_model.glb' with your actual exported file name!
+    loader.load('eye_model.glb', (gltf) => {
+        document.getElementById('loading').style.opacity = '0';
+        const eyeModel = gltf.scene;
+
+        eyeModel.traverse((child) => {
+            if (child.isMesh) {
+                // Apply the clipping plane to EVERY material so it slices cleanly
+                let matClipping = { clippingPlanes: [crossSectionPlane], clipShadows: true };
+
+                switch (child.name) {
+                    case 'Sclera_Cornea':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xffffff,
+                            roughness: 0.1,
+                            metalness: 0.0,
+                            side: THREE.DoubleSide, // Ensure it looks solid when cut
+                            ...matClipping
+                        });
+                        break;
+                    case 'Choroid_Vascular':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x110202, // Dark melanin pigment
+                            roughness: 0.9,
+                            side: THREE.DoubleSide,
+                            ...matClipping
+                        });
+                        break;
+                    case 'Retinal_Blood_Vessels':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xcc0000,
+                            roughness: 0.2,
+                            metalness: 0.1,
+                            ...matClipping
+                        });
+                        break;
+                    case 'Retina_Inner':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xffccaa,
+                            roughness: 0.6,
+                            side: THREE.DoubleSide,
+                            ...matClipping
+                        });
+                        break;
+                    case 'Crystalline_Lens':
+                        // Advanced glass material for realistic refraction
+                        child.material = new THREE.MeshPhysicalMaterial({
+                            color: 0xffffff,
+                            transmission: 0.98,
+                            opacity: 1.0,
+                            transparent: true,
+                            roughness: 0.05,
+                            ior: 1.41, // True biological lens refractive index
+                            thickness: 0.5,
+                            ...matClipping
+                        });
+                        lensMesh = child;
+                        break;
+                    case 'Zonules':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0xffffff,
+                            transparent: true,
+                            opacity: 0.5,
+                            ...matClipping
+                        });
+                        zonulesMesh = child;
+                        break;
+                    case 'Iris':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x3d2314, // Deep brown
+                            roughness: 0.5,
+                            ...matClipping
+                        });
+                        irisMesh = child;
+                        break;
+                    case 'Ciliary_Muscle':
+                        child.material = new THREE.MeshStandardMaterial({
+                            color: 0x8a4b45, // Muscular tissue color
+                            roughness: 0.7,
+                            ...matClipping
+                        });
+                        break;
+                }
+            }
+        });
+
+        eyeModel.position.set(0, 0, 0);
+        scene.add(eyeModel);
+    }, undefined, (error) => {
+        document.getElementById('loading').innerText = "Error loading model. Check console.";
+        console.error(error);
+    });
+
+    // Interaction Events
+    document.getElementById('clipSlider').addEventListener('input', (event) => {
+        crossSectionPlane.constant = parseFloat(event.target.value);
+    });
+
+    document.getElementById('lightSlider').addEventListener('input', (event) => {
+        if (irisMesh && irisMesh.morphTargetDictionary) {
+            // High light (1.0) = Constricted Pupil (Morph Target 0.0)
+            const dilationValue = 1.0 - parseFloat(event.target.value); 
+            const targetIndex = irisMesh.morphTargetDictionary['Pupil_Dilated'];
+            irisMesh.morphTargetInfluences[targetIndex] = dilationValue;
+        }
+    });
+
+    document.getElementById('focusSlider').addEventListener('input', (event) => {
+        const accomValue = parseFloat(event.target.value);
+        
+        if (lensMesh && lensMesh.morphTargetDictionary) {
+            const lensTarget = lensMesh.morphTargetDictionary['Accommodated'];
+            lensMesh.morphTargetInfluences[lensTarget] = accomValue;
+        }
+        
+        if (zonulesMesh && zonulesMesh.morphTargetDictionary) {
+            const zonuleTarget = zonulesMesh.morphTargetDictionary['Accommodated'];
+            zonulesMesh.morphTargetInfluences[zonuleTarget] = accomValue;
+        }
+    });
+
+    // Render Loop
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+    
+    // Handle Window Resize
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
