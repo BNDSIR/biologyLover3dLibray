@@ -182,9 +182,9 @@
 
     // Load GLB
     const loader = new GLTFLoader();
-    
+ 
     // ⚠️ IMPORTANT: Replace 'eye_model.glb' with your actual exported file name!
-    loader.load('eye_model.glb', (gltf) => {
+    loader.load('./models/eye_model.glb', (gltf) => {
         document.getElementById('loading').style.opacity = '0';
         const eyeModel = gltf.scene;
 
