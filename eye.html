@@ -99,6 +99,16 @@
             transition: opacity 0.5s;
         }
     </style>
+    
+    <!-- Import Map matching the working brain viewer -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
 </head>
 <body>
 
@@ -141,9 +151,10 @@
 </div>
 
 <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
-    import { GLTFLoader } from 'https://unpkg.com/three@0.158.0/examples/jsm/loaders/GLTFLoader.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
+    // Using the import map specified in the head
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
@@ -152,7 +163,7 @@
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.localClippingEnabled = true; 
+    renderer.localClippingEnabled = true; // Crucial for cross-section
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -176,9 +187,9 @@
 
     const loader = new GLTFLoader();
     
-    // Exact match for the file in your root GitHub repository
-    loader.load('eye_model.glb', (gltf) => {
-        document.getElementById('loading').style.opacity = '0';
+    // Explicit relative path to match the repository structure
+    loader.load('./eye_model.glb', (gltf) => {
+        document.getElementById('loading').style.display = 'none';
         const eyeModel = gltf.scene;
 
         eyeModel.traverse((child) => {
@@ -263,7 +274,7 @@
         eyeModel.position.set(0, 0, 0);
         scene.add(eyeModel);
     }, undefined, (error) => {
-        document.getElementById('loading').innerText = "Error loading model. Check console.";
+        document.getElementById('loading').innerText = "Error loading model. Make sure eye_model.glb is in the same folder.";
         console.error(error);
     });
 
@@ -275,7 +286,9 @@
         if (irisMesh && irisMesh.morphTargetDictionary) {
             const dilationValue = 1.0 - parseFloat(event.target.value); 
             const targetIndex = irisMesh.morphTargetDictionary['Pupil_Dilated'];
-            irisMesh.morphTargetInfluences[targetIndex] = dilationValue;
+            if (targetIndex !== undefined) {
+                irisMesh.morphTargetInfluences[targetIndex] = dilationValue;
+            }
         }
     });
 
@@ -284,12 +297,16 @@
         
         if (lensMesh && lensMesh.morphTargetDictionary) {
             const lensTarget = lensMesh.morphTargetDictionary['Accommodated'];
-            lensMesh.morphTargetInfluences[lensTarget] = accomValue;
+            if (lensTarget !== undefined) {
+                lensMesh.morphTargetInfluences[lensTarget] = accomValue;
+            }
         }
         
         if (zonulesMesh && zonulesMesh.morphTargetDictionary) {
             const zonuleTarget = zonulesMesh.morphTargetDictionary['Accommodated'];
-            zonulesMesh.morphTargetInfluences[zonuleTarget] = accomValue;
+            if (zonuleTarget !== undefined) {
+                zonulesMesh.morphTargetInfluences[zonuleTarget] = accomValue;
+            }
         }
     });
 
