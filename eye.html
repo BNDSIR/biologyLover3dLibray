@@ -243,7 +243,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
-const MODEL_URL = './eye_model_enhanced.glb';
+const MODEL_URL = './eye.glb';
 const $ = (id) => document.getElementById(id);
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
 
@@ -793,14 +793,14 @@ function loadFromArrayBuffer(buffer) {
     eyelidMixer=null; blinkAction=null; eyelidAutoBlink=false;
     $('labels').innerHTML=''; labelRenderer.domElement.id='labels-layer'; $('labels').appendChild(labelRenderer.domElement);
     setupLoadedModel(gltf);
-  },err=>{ console.error(err); $('loadingTitle').textContent='Could not read this GLB'; $('loadingSub').textContent='Please choose the enhanced eye_model_enhanced.glb file.'; $('errorActions').style.display='block'; });
+  },err=>{ console.error(err); $('loadingTitle').textContent='Could not read this GLB'; $('loadingSub').textContent='Please choose the enhanced eye.glb file.'; $('errorActions').style.display='block'; });
 }
 loader.load(MODEL_URL, setupLoadedModel, (xhr)=>{
   if(xhr.total) $('loadingSub').textContent=`Loading 3D model… ${Math.round(xhr.loaded/xhr.total*100)}%`;
 }, (error)=>{
   console.error('Automatic GLB load failed:',error);
   $('loadingTitle').textContent='Automatic model load failed';
-  $('loadingSub').textContent='Keep the HTML and eye_model_enhanced.glb in the same folder, or choose the GLB file below.';
+  $('loadingSub').textContent='Keep the HTML and eye.glb in the same folder, or choose the GLB file below.';
   $('errorActions').style.display='block';
 });
 
