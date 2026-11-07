@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#081321" />
+<title>Human Eye Explorer | মানবচক্ষু</title>
+<style>
+  :root {
+    --bg: #081321; --glass: rgba(9, 20, 34, .82); --glass2: rgba(16, 32, 50, .9);
+    --line: rgba(188, 218, 244, .18); --text: #eef6ff; --muted: #a8bed2;
+    --cyan: #68d8ee; --gold: #f2c36b; --pink: #ff8d9e; --green: #8de0b0;
+    --shadow: 0 18px 48px rgba(0,0,0,.36);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: "Segoe UI", "Nirmala UI", "Vrinda", sans-serif; }
+  button, input { font: inherit; }
+  button { color: inherit; }
+  #viewport { position: fixed; inset: 0; overflow: hidden; background: radial-gradient(ellipse at 48% 42%, #203954 0%, #101e31 46%, #070f1b 100%); }
+  #webgl { position: absolute; inset: 0; }
+  #webgl canvas { display:block; width:100%; height:100%; }
+  #labels { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .part-label { padding: 4px 8px; border: 1px solid rgba(126,220,240,.42); border-radius: 8px; background: rgba(5,17,29,.76); color:#f2fbff; font-size:11px; font-weight:650; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,.28); text-shadow:0 1px 1px #000; backdrop-filter: blur(5px); }
+  .part-label::before { content:""; display:inline-block; width:6px; height:6px; margin:0 6px 1px 0; border-radius:50%; background:var(--cyan); }
+  .part-label.active { border-color:var(--gold); background:rgba(53,39,20,.88); }
+  .topbar { position:absolute; z-index:5; top:14px; left:16px; right:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+  .brand, .top-actions { pointer-events:auto; background:rgba(6,16,28,.73); border:1px solid var(--line); box-shadow:var(--shadow); backdrop-filter:blur(14px); border-radius:14px; }
+  .brand { padding:10px 14px; display:flex; align-items:center; gap:11px; }
+  .brand-mark { width:34px; height:34px; border-radius:10px; background:linear-gradient(145deg,#69d9ed,#367bb9); display:grid; place-items:center; color:#071421; font-size:20px; font-weight:900; }
+  .brand-title { font-size:14px; font-weight:800; letter-spacing:.2px; }
+  .brand-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+  .top-actions { display:flex; align-items:center; gap:7px; padding:6px; }
+  .btn { border:1px solid rgba(176,211,239,.2); background:rgba(255,255,255,.06); border-radius:9px; padding:8px 11px; font-size:12px; cursor:pointer; transition:.18s ease; }
+  .btn:hover { border-color:rgba(104,216,238,.7); background:rgba(104,216,238,.13); }
+  .btn.active { background:rgba(104,216,238,.2); border-color:rgba(104,216,238,.7); color:#d7fbff; }
+  .btn.primary { background:linear-gradient(135deg,#4dbbd7,#377fba); border:0; color:#061724; font-weight:800; }
+  .btn.warn { color:#ffdfaa; border-color:rgba(242,195,107,.35); }
+  .side-panel { position:absolute; z-index:4; top:82px; right:16px; width:min(360px, calc(100vw - 32px)); max-height:calc(100vh - 255px); overflow:auto; padding:14px; border:1px solid var(--line); border-radius:17px; background:var(--glass); box-shadow:var(--shadow); backdrop-filter:blur(18px); }
+  .panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  .eyebrow { color:var(--cyan); letter-spacing:1.3px; font-size:9px; font-weight:900; text-transform:uppercase; }
+  #partTitle { margin:5px 0 2px; font-size:19px; line-height:1.2; }
+  #partBengali { color:#a8e8f0; font-size:15px; line-height:1.4; margin-bottom:12px; }
+  .info-block { padding:10px 11px; border-radius:11px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.07); margin-top:9px; }
+  .info-label { color:var(--gold); font-size:10px; font-weight:850; letter-spacing:.9px; text-transform:uppercase; margin-bottom:5px; }
+  .info-copy { color:#e3edf5; font-size:12px; line-height:1.55; white-space:pre-line; }
+  .info-copy.bn { color:#bcebf0; margin-top:6px; }
+  .part-list-wrap { margin-top:13px; }
+  .list-heading { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-weight:800; margin-bottom:8px; }
+  #partList { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .part-chip { text-align:left; padding:7px 8px; border-radius:9px; border:1px solid rgba(160,199,226,.14); background:rgba(255,255,255,.035); cursor:pointer; font-size:10px; line-height:1.3; }
+  .part-chip span { display:block; color:#9edce8; font-size:10px; margin-top:2px; }
+  .part-chip.active { border-color:rgba(242,195,107,.8); background:rgba(242,195,107,.12); }
+  .control-dock { position:absolute; z-index:4; left:50%; bottom:16px; transform:translateX(-50%); width:min(720px, calc(100vw - 32px)); padding:12px 15px 10px; border:1px solid var(--line); border-radius:17px; background:var(--glass); box-shadow:var(--shadow); backdrop-filter:blur(18px); }
+  .dock-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; }
+  .dock-title { font-size:11px; font-weight:900; letter-spacing:1.1px; color:#cceaf6; text-transform:uppercase; }
+  .sim-status { color:var(--green); font-size:10px; text-align:right; }
+  .sliders { display:grid; grid-template-columns:1fr 1fr; gap:12px 20px; }
+  .slider-row { min-width:0; }
+  .slider-top { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#dfeaf3; font-size:11px; margin-bottom:6px; }
+  .slider-value { color:var(--cyan); font-weight:800; white-space:nowrap; }
+  input[type=range] { display:block; width:100%; accent-color:#65d4e7; cursor:pointer; }
+  .dock-footer { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:7px; margin-top:10px; }
+  .hint { color:#9db2c6; font-size:10px; line-height:1.35; }
+  .footer-actions { display:flex; gap:6px; flex-wrap:wrap; }
+  .speech-actions { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:9px; border-top:1px solid rgba(255,255,255,.08); }
+  .voice-status { flex-basis:100%; color:var(--muted); font-size:10px; line-height:1.35; }
+  #labels-layer { transition:opacity .12s ease; }
+  #webgl canvas { touch-action:none; }
+  .object-hint { color:#ffdc90; font-size:10px; margin-top:4px; }
+  .loading { position:absolute; z-index:10; left:50%; top:50%; transform:translate(-50%,-50%); width:min(360px,calc(100vw - 32px)); padding:18px; text-align:center; border-radius:14px; background:rgba(5,15,26,.91); border:1px solid rgba(104,216,238,.3); box-shadow:var(--shadow); }
+  .loader-ring { width:28px; height:28px; margin:0 auto 10px; border:3px solid rgba(255,255,255,.15); border-top-color:var(--cyan); border-radius:50%; animation:spin .85s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .loading small { display:block; color:var(--muted); margin-top:6px; line-height:1.4; }
+  .error-actions { display:none; margin-top:10px; }
+  #modelFile { display:none; }
+  .toast { position:absolute; z-index:11; left:50%; top:76px; transform:translateX(-50%); padding:8px 12px; border-radius:9px; background:rgba(8,24,39,.94); border:1px solid rgba(104,216,238,.38); font-size:11px; color:#e8faff; opacity:0; pointer-events:none; transition:opacity .2s; }
+  .toast.show { opacity:1; }
+  .mobile-info-toggle { display:none; }
+  @media (max-width:760px) {
+    .topbar { top:7px; left:7px; right:7px; align-items:flex-start; gap:6px; }
+    .brand { padding:7px; gap:7px; }
+    .brand-mark { width:28px;height:28px; }
+    .brand-title { font-size:11px; }
+    .brand-sub { font-size:9px; }
+    .top-actions { gap:4px; flex:1 1 auto; min-width:0; max-width:none; flex-wrap:wrap; justify-content:flex-end; }
+    .top-actions .btn { padding:7px 8px; font-size:10px; min-height:34px; }
+    .side-panel { top:auto; right:7px; left:7px; bottom:252px; width:auto; max-height:29vh; padding:9px; }
+    .side-panel.collapsed { display:none; }
+    #partTitle { font-size:15px; }
+    #partBengali { font-size:12px; margin-bottom:6px; }
+    .info-block { padding:6px 7px; margin-top:5px; }
+    .info-copy { font-size:10px; line-height:1.35; }
+    .speech-actions { gap:5px; margin-top:7px; padding-top:7px; }
+    .speech-actions .btn { font-size:10px; padding:7px 8px; min-height:34px; }
+    #partList { grid-template-columns:repeat(3,1fr); }
+    .part-chip { font-size:9px; padding:6px; min-height:36px; }
+    .part-chip span { font-size:9px; }
+    .control-dock { bottom:7px; width:calc(100vw - 14px); padding:8px 9px; }
+    .sliders { gap:7px 10px; }
+    .slider-top { font-size:10px; }
+    .dock-footer { margin-top:6px; }
+    .hint { max-width:52%; font-size:9px; }
+    .footer-actions .btn { font-size:10px; min-height:34px; }
+    .mobile-info-toggle { display:inline-block; }
+    .part-label { font-size:9px; padding:3px 5px; }
+  }
+  @media (max-width:420px) {
+    .brand-sub { display:none; }
+    .topbar { align-items:flex-start; }
+    .brand { max-width:37vw; }
+    .top-actions { max-width:none; }
+    .top-actions .btn { padding:6px 7px; font-size:9px; min-height:32px; }
+    .side-panel { bottom:260px; max-height:23vh; }
+    .sliders { grid-template-columns:1fr 1fr; }
+    .control-dock { padding:7px 8px; }
+    .dock-title { font-size:9px; letter-spacing:.6px; }
+    .sim-status { font-size:9px; }
+    .btn { padding:7px 8px; }
+    .footer-actions { gap:4px; }
+    .footer-actions .btn { padding:6px 7px; font-size:9px; }
+  }
+  @media (max-height:700px) and (max-width:760px) {
+    .side-panel { max-height:23vh; }
+    .control-dock { max-height:40vh; overflow:auto; }
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="viewport">
+  <div id="webgl"></div>
+  <div id="labels"></div>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">◉</div>
+      <div><div class="brand-title">HUMAN EYE EXPLORER</div><div class="brand-sub">মানবচক্ষুর ত্রিমাত্রিক পাঠ</div></div>
+    </div>
+    <div class="top-actions">
+      <button class="btn active" id="languageBtn" title="Change language">EN + বাংলা</button>
+      <button class="btn active" id="labelsBtn">Labels: ON</button>
+      <button class="btn active" id="raysBtn">Rays: ON</button>
+      <button class="btn" id="sectionBtn">Section / ছেদ</button>
+      <button class="btn mobile-info-toggle" id="infoToggle">Info</button>
+      <button class="btn" id="resetBtn">Reset View</button>
+    </div>
+  </header>
+  <aside class="side-panel" id="sidePanel">
+    <div class="panel-head">
+      <div>
+        <div class="eyebrow">Anatomy explorer · গঠন ও কাজ</div>
+        <h2 id="partTitle">Crystalline lens</h2>
+        <div id="partBengali">চক্ষু লেন্স</div>
+      </div>
+      <button class="btn" id="closeInfo" title="Collapse information panel">×</button>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Structure / গঠন</div>
+      <div class="info-copy" id="partDescription"></div>
+      <div class="info-copy bn" id="partDescriptionBn"></div>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Function / কাজ</div>
+      <div class="info-copy" id="partFunction"></div>
+      <div class="info-copy bn" id="partFunctionBn"></div>
+    </div>
+    <div class="info-block" id="mechanismBlock">
+      <div class="info-label">Working mechanism / কার্যপদ্ধতি</div>
+      <div class="info-copy" id="partMechanism"></div>
+      <div class="info-copy bn" id="partMechanismBn"></div>
+    </div>
+    <div class="speech-actions">
+      <button class="btn primary" id="speakLabelBtn" type="button">🔊 Speak label</button>
+      <button class="btn" id="speakDetailsBtn" type="button">🔊 Speak details</button>
+      <button class="btn warn" id="stopSpeechBtn" type="button">■ Stop</button>
+      <div class="voice-status" id="voiceStatus">Google voice preferred · browser voice fallback</div>
+    </div>
+    <div class="part-list-wrap">
+      <div class="list-heading">Select a part / অংশ নির্বাচন করুন</div>
+      <div id="partList"></div>
+    </div>
+  </aside>
+  <section class="control-dock">
+    <div class="dock-head">
+      <div class="dock-title">Live physiology simulator · শারীরবৃত্তীয় সিমুলেশন</div>
+      <div class="sim-status" id="simStatus">Far focus · দূরের দৃষ্টি</div>
+    </div>
+    <div class="sliders">
+      <div class="slider-row">
+        <div class="slider-top"><label for="lightSlider">Torch intensity / আলোর তীব্রতা</label><span class="slider-value" id="lightValue">50%</span></div>
+        <input id="lightSlider" type="range" min="0" max="100" value="50" step="1" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-top"><label for="focusSlider">Move object & focus / বস্তু সরান ও ফোকাস</label><span class="slider-value" id="focusValue">Far · দূরে</span></div>
+        <input id="focusSlider" type="range" min="0" max="100" value="0" step="1" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-top"><label for="eyelidSlider">Eyelid movement / চোখের পাতা</label><span class="slider-value" id="eyelidValue">Open · খোলা</span></div>
+        <input id="eyelidSlider" type="range" min="0" max="100" value="0" step="1" />
+      </div>
+      <div class="slider-row" id="sectionSliderWrap" style="display:none">
+        <div class="slider-top"><label for="sectionSlider">Section position / ছেদের অবস্থান</label><span class="slider-value" id="sectionValue">Centre</span></div>
+        <input id="sectionSlider" type="range" min="-65" max="65" value="0" step="1" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-top"><span>Accommodation / উপযোজন</span><span class="slider-value" id="lensState">Flat lens · চ্যাপ্টা লেন্স</span></div>
+        <div class="hint" id="mechanismState">Ciliary muscle relaxed; zonules taut.</div>
+      </div>
+    </div>
+    <div class="dock-footer">
+      <div class="hint" id="helpText">Drag to rotate · Pinch to zoom · Move the object near/far · Select a part for details.</div>
+      <div class="footer-actions">
+        <button class="btn" id="farBtn">Far focus</button>
+        <button class="btn" id="nearBtn">Near focus</button>
+        <button class="btn warn" id="resetSimBtn">Reset simulation</button>
+        <button class="btn active" id="eyelidsBtn">Eyelids: ON</button>
+        <button class="btn" id="blinkBtn">Blink: Play</button>
+      </div>
+    </div>
+  </section>
+  <div class="loading" id="loading">
+    <div class="loader-ring"></div>
+    <strong id="loadingTitle">Loading enhanced eye model…</strong>
+    <small id="loadingSub">Loading embedded anatomy materials and 3D structures</small>
+    <div class="error-actions" id="errorActions">
+      <button class="btn primary" id="chooseModelBtn">Choose GLB file</button>
+      <input id="modelFile" type="file" accept=".glb,model/gltf-binary" />
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const MODEL_URL = './eye_model_enhanced.glb';
+const $ = (id) => document.getElementById(id);
+const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+
+const PARTS = {
+  Ciliary_Muscle: {
+    en:'Ciliary muscle', bn:'সিলিয়ারি পেশি',
+    desc:'A ring of smooth muscle within the ciliary body, surrounding the lens. It is part of the eye’s near-response apparatus.',
+    descBn:'সিলিয়ারি বডির মধ্যে লেন্সকে ঘিরে থাকা মসৃণ পেশির বলয়। চোখের কাছের দৃষ্টি-উপযোজন ব্যবস্থার একটি গুরুত্বপূর্ণ অংশ।',
+    fn:'For near vision, the ciliary muscle contracts. This reduces tension on the suspensory zonules, allowing the elastic lens to become rounder and more convex. For distant vision, it relaxes and zonular tension increases.',
+    fnBn:'কাছের বস্তু দেখার সময় সিলিয়ারি পেশি সংকুচিত হয়। এতে সাসপেনসরি জোনিউলের টান কমে এবং স্থিতিস্থাপক লেন্স আরও গোল ও উত্তল হয়। দূরের বস্তু দেখার সময় পেশি শিথিল হয় এবং জোনিউলের টান বাড়ে।',
+    mechanism:'Near: contracts → zonular tension falls → lens thickens. Far: relaxes → zonules pull → lens flattens.',
+    mechanismBn:'কাছের দৃষ্টি: সংকোচন → জোনিউলের টান কমে → লেন্স পুরু ও বেশি উত্তল হয়। দূরের দৃষ্টি: শিথিল → জোনিউলের টান বাড়ে → লেন্স চ্যাপ্টা হয়.'
+  },
+  Crystalline_Lens: {
+    en:'Crystalline lens', bn:'চক্ষু লেন্স',
+    desc:'A transparent, flexible, biconvex structure located behind the iris. Its capsule and internal fibres allow a change in curvature.',
+    descBn:'আইরিসের পিছনে অবস্থিত স্বচ্ছ, নমনীয়, দ্বি-উত্তল গঠন। এর ক্যাপসুল ও অভ্যন্তরীণ তন্তুর জন্য বক্রতা পরিবর্তন সম্ভব হয়।',
+    fn:'The lens fine-tunes focus so that light from near or distant objects forms a sharp image on the retina. It becomes more convex for near objects and flatter for distant objects.',
+    fnBn:'লেন্স কাছের বা দূরের বস্তুর আলোকে এমনভাবে ফোকাস করে যাতে রেটিনায় স্পষ্ট প্রতিবিম্ব তৈরি হয়। কাছের বস্তুর জন্য এটি বেশি উত্তল এবং দূরের বস্তুর জন্য চ্যাপ্টা হয়।',
+    mechanism:'Near focus: ciliary muscle contracts; zonules relax; lens curvature and optical power increase. Distance focus: the reverse occurs.',
+    mechanismBn:'কাছের দৃষ্টি: সিলিয়ারি পেশি সংকুচিত হয়; জোনিউল শিথিল হয়; লেন্সের বক্রতা ও প্রতিসরণ ক্ষমতা বাড়ে। দূরের দৃষ্টিতে উল্টো ঘটনা ঘটে.'
+  },
+  Zonules: {
+    en:'Suspensory ligaments (zonules)', bn:'সাসপেনসরি লিগামেন্ট / জোনিউল',
+    desc:'Very fine fibres extending from the ciliary body to the lens capsule. They suspend the lens and transmit tension to it.',
+    descBn:'সিলিয়ারি বডি থেকে লেন্সের ক্যাপসুল পর্যন্ত বিস্তৃত অতি সূক্ষ্ম তন্তু। এগুলি লেন্সকে ধরে রাখে এবং তার উপর টান প্রয়োগ করে।',
+    fn:'When the ciliary muscle is relaxed, the zonules are relatively taut and pull the lens flatter for distance vision. When the muscle contracts, zonular tension decreases and the lens rounds up for near vision.',
+    fnBn:'সিলিয়ারি পেশি শিথিল থাকলে জোনিউলে তুলনামূলক বেশি টান থাকে এবং দূরের দৃষ্টির জন্য লেন্স চ্যাপ্টা হয়। পেশি সংকুচিত হলে জোনিউলের টান কমে এবং কাছের দৃষ্টির জন্য লেন্স গোল হয়।',
+    mechanism:'The zonules do not actively contract; they transmit changing mechanical tension from the ciliary body to the lens.',
+    mechanismBn:'জোনিউল নিজে সক্রিয়ভাবে সংকুচিত হয় না; সিলিয়ারি বডির পরিবর্তিত যান্ত্রিক টান লেন্সে পৌঁছে দেয়.'
+  },
+  Choroid_Vascular: {
+    en:'Choroid', bn:'কোরয়েড / রক্তবাহী স্তর',
+    desc:'The pigmented, richly vascular middle coat between the sclera and retina. It contains many blood vessels and pigment cells.',
+    descBn:'স্ক্লেরা ও রেটিনার মাঝখানে অবস্থিত রঞ্জকসমৃদ্ধ ও প্রচুর রক্তনালিবিশিষ্ট মধ্যস্তর। এতে বহু রক্তনালি ও রঞ্জক কোষ থাকে।',
+    fn:'It supplies oxygen and nutrients to the outer retina and absorbs stray light, helping reduce internal light scattering.',
+    fnBn:'এটি রেটিনার বাইরের স্তরে অক্সিজেন ও পুষ্টি পৌঁছে দেয় এবং বিচ্ছুরিত আলো শোষণ করে চোখের ভিতরে আলোর প্রতিফলন কমায়।',
+    mechanism:'Its close vascular relationship with the retinal pigment epithelium supports the high metabolic needs of photoreceptors.',
+    mechanismBn:'রেটিনাল পিগমেন্ট এপিথেলিয়ামের সঙ্গে ঘনিষ্ঠ রক্ত-সরবরাহের মাধ্যমে ফটোরিসেপ্টর কোষের উচ্চ বিপাকীয় চাহিদা পূরণে সাহায্য করে.'
+  },
+  Pupil: {
+    en:'Pupil', bn:'পিউপিল / চোখের মণির ছিদ্র',
+    desc:'The pupil is the central opening in the iris. It is an aperture, not a separate pigmented tissue. The black disk in this teaching model is a visual representation of the opening.',
+    descBn:'পিউপিল হলো আইরিসের কেন্দ্রীয় ছিদ্র। এটি আলাদা কোনো রঞ্জক কলা নয়, বরং আলোক-প্রবেশদ্বার। মডেলের কালো চাকতিটি এই ছিদ্রের দৃশ্যমান উপস্থাপনা।',
+    fn:'It controls the amount of light entering the eye. Its diameter changes when the iris sphincter and dilator muscles act.',
+    fnBn:'চোখে প্রবেশ করা আলোর পরিমাণ নিয়ন্ত্রণ করে। আইরিসের স্ফিঙ্কটার ও ডাইলেটর পেশির ক্রিয়ায় এর ব্যাস পরিবর্তিত হয়।',
+    mechanism:'Bright light: sphincter pupillae contracts and the pupil constricts. Dim light: dilator pupillae activity widens the pupil. Near focus also produces a mild constriction.',
+    mechanismBn:'উজ্জ্বল আলো: স্ফিঙ্কটার পিউপিলি সংকুচিত হয়ে পিউপিল ছোট করে। কম আলো: ডাইলেটর পিউপিলির ক্রিয়ায় পিউপিল বড় হয়। কাছের বস্তুতে ফোকাস করলেও পিউপিল কিছুটা সংকুচিত হয়.'
+  },
+  Iris: {
+    en:'Iris', bn:'আইরিস / রঙিন পর্দা',
+    desc:'A pigmented diaphragm in front of the lens. Its central opening is the pupil. The iris contains circular sphincter and radial dilator muscle fibres.',
+    descBn:'লেন্সের সামনে অবস্থিত রঞ্জকযুক্ত পর্দা। এর কেন্দ্রীয় ছিদ্রকে পিউপিল বা চোখের মণি বলা হয়। আইরিসে বৃত্তাকার স্ফিঙ্কটার ও রেডিয়াল ডাইলেটর পেশিতন্তু থাকে।',
+    fn:'It regulates how much light enters the eye. Bright light activates the parasympathetic pathway and constricts the pupil; dim light favours sympathetic dilation.',
+    fnBn:'চোখে কতটা আলো প্রবেশ করবে তা নিয়ন্ত্রণ করে। উজ্জ্বল আলো প্যারাসিমপ্যাথেটিক পথকে সক্রিয় করে পিউপিল সংকুচিত করে; কম আলোতে সিমপ্যাথেটিক প্রভাবে পিউপিল প্রসারিত হয়।',
+    mechanism:'Pupillary light reflex: retina → optic nerve → midbrain pretectal area → Edinger–Westphal nuclei → oculomotor nerve → ciliary ganglion → sphincter pupillae. The other pupil also constricts (consensual response).',
+    mechanismBn:'পিউপিলারি আলোক প্রতিবর্ত: রেটিনা → অপটিক নার্ভ → মধ্যমস্তিষ্কের প্রিটেকটাল অঞ্চল → এডিঙ্গার–ওয়েস্টফাল নিউক্লিয়াস → অকুলোমোটর নার্ভ → সিলিয়ারি গ্যাংলিয়ন → স্ফিঙ্কটার পিউপিলি। অপর চোখের পিউপিলও সংকুচিত হয় (সম্মিলিত প্রতিক্রিয়া)।'
+  },
+  Optic_Nerve: {
+    en:'Optic nerve', bn:'অপটিক নার্ভ / দৃষ্টিস্নায়ু',
+    desc:'A bundle formed mainly by the axons of retinal ganglion cells. It exits the posterior part of the eyeball at the optic disc.',
+    descBn:'মূলত রেটিনার গ্যাংলিয়ন কোষের অ্যাক্সন দিয়ে গঠিত স্নায়ুতন্তুর গুচ্ছ। এটি অপটিক ডিস্ক দিয়ে চোখের পশ্চাৎ অংশ থেকে বের হয়।',
+    fn:'It carries electrical signals generated in the retina toward the brain, where visual information is interpreted.',
+    fnBn:'রেটিনায় উৎপন্ন বৈদ্যুতিক স্নায়ু-সংকেত মস্তিষ্কে বহন করে, যেখানে দৃষ্টিসংক্রান্ত তথ্য বিশ্লেষিত হয়।',
+    mechanism:'The optic disc has no rods or cones, so it corresponds to the physiological blind spot. The optic nerve is the visual pathway leaving the eye.',
+    mechanismBn:'অপটিক ডিস্কে রড ও কোন কোষ থাকে না, তাই এই স্থানে শারীরবৃত্তীয় অন্ধবিন্দু তৈরি হয়। অপটিক নার্ভ চোখ থেকে বের হওয়া দৃষ্টিপথের অংশ.'
+  },
+  Retina_Inner: {
+    en:'Retina', bn:'রেটিনা / অক্ষিপট',
+    desc:'A delicate, multilayered neural tissue lining the inside of the posterior eye. It contains photoreceptors (rods and cones) and several layers of processing neurons.',
+    descBn:'চোখের পশ্চাৎ অভ্যন্তরীণ পৃষ্ঠে থাকা সূক্ষ্ম, বহুস্তরী স্নায়বিক কলা। এতে আলোক-সংবেদী রড ও কোন কোষ এবং সংকেত প্রক্রিয়াকরণকারী বিভিন্ন স্নায়ুকোষ থাকে।',
+    fn:'Rods are highly sensitive in dim light; cones support colour vision and high visual acuity in brighter conditions. Retinal circuits begin processing visual signals before they leave through the optic nerve.',
+    fnBn:'রড কোষ কম আলোতে অত্যন্ত সংবেদনশীল; কোন কোষ রঙিন দৃষ্টি ও বেশি স্পষ্ট দৃষ্টিতে সাহায্য করে। অপটিক নার্ভ দিয়ে সংকেত বের হওয়ার আগেই রেটিনার স্নায়বিক বর্তনী প্রাথমিক প্রক্রিয়াকরণ করে।',
+    mechanism:'Light passes through the inner retinal layers before reaching the photoreceptors. The neural signal then travels through bipolar and ganglion cells.',
+    mechanismBn:'আলো ফটোরিসেপ্টরে পৌঁছানোর আগে রেটিনার ভিতরের স্তরগুলি অতিক্রম করে। এরপর স্নায়ু-সংকেত বাইপোলার ও গ্যাংলিয়ন কোষের মাধ্যমে প্রবাহিত হয়.'
+  },
+  Retinal_Blood_Vessels: {
+    en:'Retinal blood vessels', bn:'রেটিনার রক্তনালি',
+    desc:'Branches of the central retinal artery and vein spread over the inner surface of the retina. The model shows a simplified vessel pattern.',
+    descBn:'সেন্ট্রাল রেটিনাল আর্টারি ও ভেইনের শাখা-প্রশাখা রেটিনার ভিতরের পৃষ্ঠে বিস্তৃত থাকে। মডেলে রক্তনালির একটি সরলীকৃত বিন্যাস দেখানো হয়েছে।',
+    fn:'They provide oxygen and nutrients mainly to the inner retinal layers and return deoxygenated blood. The outer retina is largely supported by the choroidal circulation.',
+    fnBn:'এগুলি মূলত রেটিনার ভিতরের স্তরে অক্সিজেন ও পুষ্টি পৌঁছে দেয় এবং ব্যবহৃত রক্ত ফিরিয়ে নিয়ে যায়। রেটিনার বাইরের অংশ প্রধানত কোরয়েডের রক্তসঞ্চালন থেকে পুষ্টি পায়।',
+    mechanism:'The retinal and choroidal circulations serve different retinal layers; they are complementary rather than interchangeable.',
+    mechanismBn:'রেটিনাল ও কোরয়েডাল রক্তসঞ্চালন রেটিনার ভিন্ন ভিন্ন স্তরকে পুষ্টি দেয়; দুটি ব্যবস্থা পরস্পরের পরিপূরক.'
+  },
+  Sclera: {
+    en:'Sclera', bn:'স্ক্লেরা',
+    desc:'The tough, opaque white fibrous coat surrounding most of the eyeball. The enhanced GLB gives it a separate selectable surface.',
+    descBn:'চোখের অধিকাংশ অংশ ঘিরে থাকা শক্ত, অস্বচ্ছ সাদা তন্তুময় আবরণ। উন্নত GLB-তে এটিকে আলাদা করে নির্বাচন করা যায়।',
+    fn:'Protects the inner structures, maintains the shape of the eyeball, and provides attachment for the extraocular muscles.',
+    fnBn:'চোখের ভিতরের অংশকে সুরক্ষা দেয়, চোখের আকৃতি বজায় রাখে এবং বহিঃচক্ষু পেশির সংযোজনস্থল হিসেবে কাজ করে।',
+    mechanism:'The sclera is continuous with the transparent cornea at the limbus, the junction around the front of the eye.',
+    mechanismBn:'চোখের সামনের দিকে লিম্বাস নামক সংযোগস্থলে স্ক্লেরা স্বচ্ছ কর্নিয়ার সঙ্গে অবিচ্ছিন্ন থাকে.'
+  },
+  Cornea: {
+    en:'Cornea', bn:'কর্নিয়া',
+    desc:'The transparent, curved anterior cap of the eye. It is separated from the combined outer surface in the enhanced model to make its role easier to study.',
+    descBn:'চোখের সামনের স্বচ্ছ ও বাঁকানো আবরণ। এর কাজ আলাদা করে বোঝানোর জন্য উন্নত মডেলে একত্রিত বাইরের পৃষ্ঠ থেকে এটিকে পৃথক করা হয়েছে।',
+    fn:'Admits light and provides most of the refractive power of the eye. Its smooth curvature helps focus incoming light.',
+    fnBn:'আলো প্রবেশ করায় এবং চোখের অধিকাংশ প্রতিসরণ ক্ষমতা দেয়। এর মসৃণ বক্রতা আগত আলোকে ফোকাস করতে সাহায্য করে।',
+    mechanism:'The cornea is avascular. It receives nutrients from tears and aqueous humour; its smooth surface is essential for clear refraction.',
+    mechanismBn:'কর্নিয়ায় রক্তনালি থাকে না। অশ্রু ও অ্যাকুয়াস হিউমার থেকে পুষ্টি পায়; এর মসৃণ পৃষ্ঠ স্পষ্ট প্রতিসরণের জন্য জরুরি.'
+  },
+  Upper_Eyelid: {
+    en:'Upper eyelid', bn:'উপরের চোখের পাতা',
+    desc:'A movable fold of skin, orbicularis oculi muscle, tarsal plate and associated glands. The model uses a curved skin flap with an open-to-closed morph shape.',
+    descBn:'ত্বক, অরবিকুলারিস অকুলি পেশি, টারসাল প্লেট ও সংশ্লিষ্ট গ্রন্থি দিয়ে গঠিত চলনশীল ভাঁজ। মডেলে খোলা থেকে বন্ধ হওয়ার জন্য বক্র ত্বকীয় অংশের আকৃতি পরিবর্তন দেখানো হয়েছে।',
+    fn:'Protects the anterior eye, spreads the tear film during blinking, and helps prevent the ocular surface from drying. The upper lid contributes most of the visible lid movement.',
+    fnBn:'চোখের সামনের অংশকে রক্ষা করে, পলক ফেলার সময় অশ্রুস্তর ছড়িয়ে দেয় এবং চোখের পৃষ্ঠ শুকিয়ে যাওয়া রোধ করে। দৃশ্যমান পলক চলাচলের অধিকাংশ উপরির চোখের পাতার মাধ্যমে হয়।',
+    mechanism:'The orbicularis oculi closes the lids; levator palpebrae superioris and superior tarsal muscle help elevate the upper lid. The blink reflex helps protect the cornea.',
+    mechanismBn:'অরবিকুলারিস অকুলি পেশি চোখের পাতা বন্ধ করে; লেভেটর প্যালপিব্রে সুপিরিয়রিস এবং সুপিরিয়র টারসাল পেশি উপরির পাতা তুলতে সাহায্য করে। পলক-প্রতিবর্ত কর্নিয়াকে সুরক্ষা দেয়।'
+  },
+  Lower_Eyelid: {
+    en:'Lower eyelid', bn:'নিচের চোখের পাতা',
+    desc:'The lower movable lid margin and supporting tarsal tissues form the lower boundary of the palpebral opening. It moves with the blink and helps maintain lid apposition.',
+    descBn:'নিচের চলনশীল পাতার প্রান্ত ও সহায়ক টারসাল কলা চোখের পাতার ফাঁকের নিচের সীমানা তৈরি করে। পলক ফেলার সময় এটি নড়ে এবং চোখের সঙ্গে পাতার সংযোগ বজায় রাখতে সাহায্য করে।',
+    fn:'Protects the lower anterior eye, supports tear-film distribution and helps direct tears toward the lacrimal drainage area.',
+    fnBn:'চোখের নিচের সামনের অংশকে রক্ষা করে, অশ্রুস্তর ছড়াতে সাহায্য করে এবং অশ্রুকে অশ্রু-নিষ্কাশন অঞ্চলের দিকে পরিচালিত করে।',
+    mechanism:'Upper and lower lids approach one another during a blink. Their margins meet briefly, spreading tears over the cornea and conjunctiva.',
+    mechanismBn:'পলক ফেলার সময় উপরির ও নিচের পাতা একে অপরের কাছে আসে। পাতার প্রান্ত অল্প সময়ের জন্য মিলিত হয়ে কর্নিয়া ও কনজাংটিভার উপর অশ্রু ছড়িয়ে দেয়।'
+  },
+  Conjunctiva: {
+    en:'Conjunctiva', bn:'কনজাংটিভা / নেত্রবর্ত্মকলা',
+    desc:'A thin, transparent mucous membrane. Bulbar conjunctiva covers the anterior sclera; palpebral conjunctiva lines the inner eyelids. They are continuous through the conjunctival fornices.',
+    descBn:'একটি পাতলা, স্বচ্ছ শ্লৈষ্মিক ঝিল্লি। বালবার কনজাংটিভা স্ক্লেরার সামনের অংশ ঢেকে রাখে এবং প্যালপিব্রাল কনজাংটিভা চোখের পাতার ভিতরের দিক আবৃত করে। কনজাংটিভাল ফর্নিক্সে এরা অবিচ্ছিন্ন।',
+    fn:'Lubricates and protects the ocular surface, contributes to the tear-film mucin layer, and provides a local immune barrier.',
+    fnBn:'চোখের পৃষ্ঠকে পিচ্ছিল ও সুরক্ষিত রাখে, অশ্রুস্তরের মিউসিন স্তরে অবদান রাখে এবং স্থানীয় রোগপ্রতিরোধী বাধা তৈরি করে।',
+    mechanism:'Goblet cells produce mucins that help tears spread evenly. The conjunctiva moves with the lids while the bulbar part remains over the sclera, stopping at the limbus.',
+    mechanismBn:'গবলেট কোষ মিউসিন তৈরি করে, যা অশ্রু সমানভাবে ছড়াতে সাহায্য করে। চোখের পাতা নড়ার সঙ্গে কনজাংটিভা নড়ে; বালবার অংশ স্ক্লেরার উপর থাকে এবং লিম্বাসে এসে শেষ হয়।'
+  },
+  Corneoscleral_Junction: {
+    en:'Limbus (corneoscleral junction)', bn:'লিম্বাস / কর্নিয়া-স্ক্লেরা সংযোগস্থল',
+    desc:'The circular transition zone where the clear cornea meets the opaque sclera and conjunctiva. The added ring is a teaching outline to make this boundary easy to identify.',
+    descBn:'স্বচ্ছ কর্নিয়া, অস্বচ্ছ স্ক্লেরা ও কনজাংটিভার মিলনস্থলের বৃত্তাকার পরিবর্তন অঞ্চল। এই সংযোজিত বলয়টি সীমানা সহজে চেনানোর জন্য শিক্ষামূলক রেখা।',
+    fn:'Marks the anatomical transition between corneal and scleral tissues. It is important in corneal nutrition, wound healing and aqueous drainage anatomy.',
+    fnBn:'কর্নিয়া ও স্ক্লেরা কলার মধ্যকার শারীরস্থানিক পরিবর্তন নির্দেশ করে। কর্নিয়ার পুষ্টি, ক্ষত নিরাময় এবং অ্যাকুয়াস নিষ্কাশনের শারীরস্থানে এটি গুরুত্বপূর্ণ।',
+    mechanism:'The corneal epithelium transitions to conjunctival epithelium around the limbus; the underlying tissues also change from corneal stroma to scleral tissue.',
+    mechanismBn:'লিম্বাসের কাছে কর্নিয়ার এপিথেলিয়াম কনজাংটিভার এপিথেলিয়ামে রূপান্তরিত হয়; নিচের কলাতেও কর্নিয়ার স্ট্রোমা থেকে স্ক্লেরার কলায় পরিবর্তন ঘটে।'
+  },
+  Aqueous_Humor: {
+    en:'Aqueous humour', bn:'অ্যাকুয়াস হিউমার / জলীয় রস',
+    desc:'A clear, watery fluid in the anterior segment. It occupies the posterior chamber behind the iris and the anterior chamber between the iris and cornea.',
+    descBn:'চোখের সামনের অংশে থাকা স্বচ্ছ জলীয় তরল। এটি আইরিসের পিছনের পশ্চাৎ প্রকোষ্ঠ এবং আইরিস ও কর্নিয়ার মাঝের সম্মুখ প্রকোষ্ঠে থাকে।',
+    fn:'It nourishes the avascular cornea and lens, removes metabolic waste, and helps maintain intraocular pressure.',
+    fnBn:'রক্তনালিবিহীন কর্নিয়া ও লেন্সে পুষ্টি পৌঁছায়, বিপাকীয় বর্জ্য অপসারণ করে এবং চোখের অভ্যন্তরীণ চাপ বজায় রাখতে সাহায্য করে।',
+    mechanism:'It is produced by the ciliary processes, flows through the pupil into the anterior chamber, and drains mainly through the trabecular meshwork and canal of Schlemm.',
+    mechanismBn:'সিলিয়ারি প্রসেসে তৈরি হয়ে পিউপিল দিয়ে সম্মুখ প্রকোষ্ঠে প্রবাহিত হয় এবং প্রধানত ট্রাবেকুলার মেশওয়ার্ক ও শ্লেমের নালি দিয়ে বের হয়.'
+  },
+  Vitreous_Humor: {
+    en:'Vitreous body (vitreous humour)', bn:'ভিট্রিয়াস বডি / কাচীয় দেহ',
+    desc:'A transparent, hydrated gel filling most of the large posterior cavity behind the lens. It is a gel, not an empty space.',
+    descBn:'লেন্সের পিছনে চোখের বৃহৎ পশ্চাৎ প্রকোষ্ঠ পূর্ণ করে রাখা স্বচ্ছ, জলসমৃদ্ধ জেল। এটি ফাঁকা স্থান নয়, জেলজাতীয় পদার্থ।',
+    fn:'It transmits light, helps maintain the shape of the eyeball, and provides support to the retina.',
+    fnBn:'আলো চলাচলে সাহায্য করে, চোখের আকৃতি বজায় রাখে এবং রেটিনাকে সমর্থন দেয়।',
+    mechanism:'Unlike aqueous humour, the vitreous is not continuously circulated through a drainage pathway; it is a relatively stable gel.',
+    mechanismBn:'অ্যাকুয়াস হিউমারের মতো ভিট্রিয়াস নিয়মিত নিষ্কাশন-পথে প্রবাহিত হয় না; এটি তুলনামূলকভাবে স্থিতিশীল জেল.'
+  }
+};
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x091525);
+scene.fog = new THREE.Fog(0x091525, 7, 16);
+const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, .05, 80);
+camera.position.set(2.65, 1.25, 3.45);
+const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false, powerPreference:'high-performance'});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.localClippingEnabled = true;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+$('webgl').appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(innerWidth, innerHeight);
+labelRenderer.domElement.id = 'labels-layer';
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.inset = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+$('labels').appendChild(labelRenderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = .06;
+controls.minDistance = 1.1;
+controls.maxDistance = 9;
+controls.target.set(0,0,0);
+
+// Procedural studio environment, lights, and soft fill for transparent anatomy.
+const pmrem = new THREE.PMREMGenerator(renderer);
+const room = new RoomEnvironment();
+scene.environment = pmrem.fromScene(room, .04).texture;
+room.dispose(); pmrem.dispose();
+scene.add(new THREE.HemisphereLight(0xc9e9ff, 0x263142, 1.15));
+const keyLight = new THREE.DirectionalLight(0xffead4, 2.6); keyLight.position.set(3,4,5); keyLight.castShadow = true; scene.add(keyLight);
+const fillLight = new THREE.DirectionalLight(0x72bfe7, 1.35); fillLight.position.set(-4,1,2); scene.add(fillLight);
+const rimLight = new THREE.DirectionalLight(0xff9b85, 1.1); rimLight.position.set(0,2,-4); scene.add(rimLight);
+const torch = new THREE.PointLight(0xfff1d7, 1.8, 5, 1.8); torch.position.set(0,0,2.2); scene.add(torch);
+const torchMarker = new THREE.Mesh(new THREE.SphereGeometry(.035,16,12), new THREE.MeshBasicMaterial({color:0xffe8a8}));
+torchMarker.position.copy(torch.position); scene.add(torchMarker);
+
+const modelPivot = new THREE.Group(); scene.add(modelPivot);
+
+// A visible teaching object that moves along the optical axis as object distance changes.
+const objectTarget = new THREE.Group();
+const objectBody = new THREE.Mesh(
+  new THREE.SphereGeometry(.135, 28, 20),
+  new THREE.MeshPhysicalMaterial({color:0xf06b42, roughness:.28, clearcoat:.9, emissive:0x411006, emissiveIntensity:.28})
+);
+objectTarget.add(objectBody);
+const objectRing = new THREE.Mesh(
+  new THREE.TorusGeometry(.235, .012, 8, 40),
+  new THREE.MeshBasicMaterial({color:0xffd47a, transparent:true, opacity:.9})
+);
+objectTarget.add(objectRing);
+const objectLeaf = new THREE.Mesh(
+  new THREE.SphereGeometry(.055, 16, 12),
+  new THREE.MeshStandardMaterial({color:0x70c77a, roughness:.55})
+);
+objectLeaf.scale.set(1.6,.58,.55); objectLeaf.position.set(.055,.155,0); objectTarget.add(objectLeaf);
+const objectStem = new THREE.Mesh(
+  new THREE.CylinderGeometry(.009,.012,.08,8),
+  new THREE.MeshStandardMaterial({color:0x9a6a3b, roughness:.8})
+);
+objectStem.position.set(0,.17,0); objectTarget.add(objectStem);
+// Small always-visible caption for the movable object (not affected by the anatomy-label switch).
+const objectCanvas = document.createElement('canvas'); objectCanvas.width=512; objectCanvas.height=112;
+const objectCtx = objectCanvas.getContext('2d');
+objectCtx.fillStyle='rgba(5,17,29,.88)'; objectCtx.roundRect(5,5,502,102,24); objectCtx.fill();
+objectCtx.font='bold 38px Segoe UI, sans-serif'; objectCtx.textAlign='center'; objectCtx.textBaseline='middle'; objectCtx.fillStyle='#ffe5a8'; objectCtx.fillText('OBJECT  /  বস্তু',256,57);
+const objectCaptionTexture = new THREE.CanvasTexture(objectCanvas);
+const objectCaption = new THREE.Sprite(new THREE.SpriteMaterial({map:objectCaptionTexture, transparent:true, depthTest:false}));
+objectCaption.scale.set(.9,.20,1); objectCaption.position.set(0,.42,0); objectTarget.add(objectCaption);
+objectTarget.position.set(.38,.12,5.0); scene.add(objectTarget);
+
+// Three simplified teaching rays: object → cornea → lens → retina. They can be hidden independently.
+const opticalRayGroup = new THREE.Group(); scene.add(opticalRayGroup);
+const opticalRays = [];
+for (const [idx,color] of [[0,0xffd36c],[1,0x9be7ff],[2,0xffd36c]]) {
+  const geometry = new THREE.BufferGeometry();
+  const material = new THREE.LineBasicMaterial({color, transparent:true, opacity:.95, depthTest:false});
+  const line = new THREE.Line(geometry,material); line.renderOrder=30; opticalRayGroup.add(line); opticalRays.push(line);
+}
+let raysVisible = true;
+function updateObjectAndRays() {
+  // Near object is close to the cornea; far object is moved farther along +Z.
+  const distance = 1.95 + (1-nearAmount)*3.35;
+  const eyeOffsetZ=modelPivot.position.z;
+  objectTarget.position.set(.38,.12,distance);
+  const rayStarts = [-.09,0,.09];
+  const corneaHits = [-.19,0,.19];
+  const lensHits = [-.075,0,.075];
+  opticalRays.forEach((line,i)=>{
+    const points = [
+      new THREE.Vector3(objectTarget.position.x+rayStarts[i],objectTarget.position.y,objectTarget.position.z),
+      new THREE.Vector3(corneaHits[i],0,eyeOffsetZ+1.12),
+      new THREE.Vector3(lensHits[i],0,eyeOffsetZ+.39),
+      new THREE.Vector3(0,0,eyeOffsetZ-.78)
+    ];
+    line.geometry.dispose(); line.geometry=new THREE.BufferGeometry().setFromPoints(points);
+  });
+}
+function setRaysVisible(value) {
+  raysVisible=!!value; opticalRayGroup.visible=raysVisible;
+  $('raysBtn').classList.toggle('active',raysVisible);
+  $('raysBtn').textContent=raysVisible?'Rays: ON':'Rays: OFF';
+}
+const loader = new GLTFLoader();
+let gltfScene = null;
+let modelLoaded = false;
+let languageMode = 'both';
+let labelsVisible = true;
+let sectionEnabled = false;
+let activeKey = 'Crystalline_Lens';
+let nearAmount = 0;
+let lightAmount = .5;
+updateObjectAndRays();
+let sectionPlane = new THREE.Plane(new THREE.Vector3(1,0,0), 0);
+let modelRadius = 1.0;
+let defaultCameraPosition = new THREE.Vector3(2.65,1.25,3.45);
+let cameraGoal = null;
+const objectsByPart = {};
+const labelElements = {};
+const originalMaterials = new Map();
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let lastHover = '';
+let eyelidMixer = null;
+let blinkAction = null;
+let eyelidAutoBlink = false;
+let eyelidsVisible = true;
+let eyelidAmount = 0;
+const frameClock = new THREE.Clock();
+
+function languageText(en,bn) {
+  if (languageMode==='en') return en;
+  if (languageMode==='bn') return bn;
+  return `${en} · ${bn}`;
+}
+function getPart(key) { return PARTS[key] || PARTS.Crystalline_Lens; }
+function updateInfo(key) {
+  const p=getPart(key); activeKey=key;
+  $('partTitle').textContent = languageMode==='bn' ? p.bn : p.en;
+  $('partBengali').textContent = languageMode==='both' ? p.bn : '';
+  $('partDescription').textContent = languageMode==='bn' ? '' : p.desc;
+  $('partDescriptionBn').textContent = languageMode==='en' ? '' : p.descBn;
+  $('partFunction').textContent = languageMode==='bn' ? '' : p.fn;
+  $('partFunctionBn').textContent = languageMode==='en' ? '' : p.fnBn;
+  $('partMechanism').textContent = languageMode==='bn' ? '' : p.mechanism;
+  $('partMechanismBn').textContent = languageMode==='en' ? '' : p.mechanismBn;
+  document.querySelectorAll('.part-chip').forEach(el=>el.classList.toggle('active',el.dataset.key===key));
+  for (const [k,el] of Object.entries(labelElements)) el.classList.toggle('active',k===key);
+  highlightPart(key);
+}
+function buildPartList() {
+  const root=$('partList'); root.innerHTML='';
+  Object.keys(PARTS).forEach(key=>{
+    const p=PARTS[key]; const b=document.createElement('button'); b.className='part-chip'; b.dataset.key=key;
+    b.innerHTML=`<span class="chip-en"></span><span class="chip-bn"></span>`;
+    b.querySelector('.chip-en').textContent=p.en;
+    b.querySelector('.chip-bn').textContent=p.bn;
+    b.addEventListener('click',()=>{ updateInfo(key); focusPart(key); });
+    root.appendChild(b);
+  });
+}
+function highlightPart(key) {
+  for (const [k,obj] of Object.entries(objectsByPart)) {
+    obj.traverse(child=>{
+      if (!child.isMesh || !child.material) return;
+      const mats=Array.isArray(child.material)?child.material:[child.material];
+      mats.forEach(mat=>{
+        if (!originalMaterials.has(mat)) originalMaterials.set(mat,{emissive:mat.emissive?mat.emissive.clone():null, emissiveIntensity:mat.emissiveIntensity});
+        if (mat.emissive) {
+          mat.emissive.setHex(k===key?0x16465b:0x000000);
+          mat.emissiveIntensity=k===key?.55:0;
+        }
+      });
+    });
+  }
+}
+function focusPart(key) {
+  const obj=objectsByPart[key]; if(!obj) return;
+  const box=new THREE.Box3().setFromObject(obj); const center=box.getCenter(new THREE.Vector3());
+  controls.target.copy(center);
+}
+function makeLabel(key,obj) {
+  const p=getPart(key); const el=document.createElement('div'); el.className='part-label';
+  el.textContent=languageText(p.en,p.bn);
+  const label=new CSS2DObject(el); const worldPos=new THREE.Vector3();
+  const labelPoints={
+    Upper_Eyelid:new THREE.Vector3(0,.59,1.02),
+    Lower_Eyelid:new THREE.Vector3(0,-.57,1.02),
+    Conjunctiva:new THREE.Vector3(-.84,-.33,.52),
+    Corneoscleral_Junction:new THREE.Vector3(.72,-.08,.82)
+  };
+  if(labelPoints[key]) worldPos.copy(obj.localToWorld(labelPoints[key].clone()));
+  else obj.getWorldPosition(worldPos);
+  modelPivot.worldToLocal(worldPos); label.position.copy(worldPos); modelPivot.add(label);
+  labelElements[key]=el;
+}
+function updateLabels() {
+  for (const [key,el] of Object.entries(labelElements)) {
+    const p=getPart(key); el.textContent=languageText(p.en,p.bn);
+    if(key==='Upper_Eyelid'||key==='Lower_Eyelid') el.style.display=eyelidsVisible?'':'none';
+  }
+  // Hide the complete CSS2D layer. CSS2DRenderer may reset individual label display styles on render.
+  $('labels').style.display=labelsVisible?'block':'none';
+  labelRenderer.domElement.style.display=labelsVisible?'block':'none';
+  objectCaption.visible=labelsVisible;
+  objectCtx.clearRect(0,0,512,112);
+  objectCtx.fillStyle='rgba(5,17,29,.88)'; objectCtx.roundRect(5,5,502,102,24); objectCtx.fill();
+  objectCtx.font='bold 38px Segoe UI, sans-serif'; objectCtx.textAlign='center'; objectCtx.textBaseline='middle'; objectCtx.fillStyle='#ffe5a8';
+  objectCtx.fillText(languageMode==='en'?'OBJECT':languageMode==='bn'?'বস্তু':'OBJECT  /  বস্তু',256,57);
+  objectCaptionTexture.needsUpdate=true;
+  $('labelsBtn').classList.toggle('active',labelsVisible);
+  $('labelsBtn').textContent=labelsVisible?'Labels: ON':'Labels: OFF';
+}
+function applyClipping() {
+  for (const key of Object.keys(objectsByPart)) {
+    objectsByPart[key].traverse(child=>{
+      if (!child.isMesh || !child.material) return;
+      const mats=Array.isArray(child.material)?child.material:[child.material];
+      mats.forEach(mat=>{ mat.clippingPlanes=sectionEnabled?[sectionPlane]:[]; mat.clipShadows=sectionEnabled; mat.needsUpdate=true; });
+    });
+  }
+  $('sectionBtn').classList.toggle('active',sectionEnabled);
+  $('sectionBtn').textContent=sectionEnabled?'Exit Section':'Longitudinal Section';
+  $('sectionSliderWrap').style.display=sectionEnabled?'block':'none';
+}
+function morph(obj,target,value) {
+  if(!obj || !obj.morphTargetDictionary || !obj.morphTargetInfluences) return false;
+  const idx=obj.morphTargetDictionary[target];
+  if(idx===undefined) return false;
+  obj.morphTargetInfluences[idx]=clamp(value,0,1); return true;
+}
+function setLight(value) {
+  lightAmount=clamp(value,0,1);
+  $('lightSlider').value=Math.round(lightAmount*100);
+  $('lightValue').textContent=`${Math.round(lightAmount*100)}%`;
+  torch.intensity=.15 + lightAmount*4.6;
+  const iris=objectsByPart.Iris;
+  const dilation=clamp((1-lightAmount)*(1-.23*nearAmount),0,1);
+  morph(iris,'Pupil_Dilated',dilation);
+  // The pupil is a separate dark aperture mesh; match its radius to the iris morph target.
+  const pupil=objectsByPart.Pupil;
+  if(pupil) { const radius=.15 + .12*dilation; pupil.scale.x=radius; pupil.scale.y=radius; }
+  $('toast').textContent=`Pupil response · পিউপিলের প্রতিক্রিয়া: ${Math.round(dilation*100)}% dilated`;
+}
+function setAccommodation(value) {
+  nearAmount=clamp(value,0,1);
+  $('focusSlider').value=Math.round(nearAmount*100);
+  const lens=objectsByPart.Crystalline_Lens;
+  const zonules=objectsByPart.Zonules;
+  const ciliary=objectsByPart.Ciliary_Muscle;
+  // The supplied GLB contains named morph targets for lens and zonules.
+  morph(lens,'Accommodated',nearAmount);
+  morph(zonules,'Accommodated',nearAmount);
+  // The source ciliary mesh has no morph target, so contract its ring gently as a visual teaching cue.
+  if(ciliary) { ciliary.scale.x=1-.075*nearAmount; ciliary.scale.y=1-.075*nearAmount; }
+  updateObjectAndRays();
+  const isNear=nearAmount>.5;
+  $('focusValue').textContent=isNear?'Near · কাছে':'Far · দূরে';
+  $('simStatus').textContent=isNear?'Near focus · কাছের দৃষ্টি':'Far focus · দূরের দৃষ্টি';
+  $('lensState').textContent=isNear?'Rounded lens · বেশি উত্তল':'Flat lens · চ্যাপ্টা লেন্স';
+  $('mechanismState').textContent=isNear?'Ciliary muscle contracts · zonules relax · lens thickens':'Ciliary muscle relaxes · zonules become taut · lens flattens';
+  $('farBtn').classList.toggle('active',nearAmount<.5);
+  $('nearBtn').classList.toggle('active',nearAmount>=.5);
+  const currentLight=lightAmount;
+  setLight(currentLight);
+}
+function stopAutoBlink() {
+  eyelidAutoBlink=false;
+  if(blinkAction) blinkAction.stop();
+  if(eyelidMixer) eyelidMixer.stopAllAction();
+  $('blinkBtn').classList.remove('active');
+  $('blinkBtn').textContent='Blink: Play';
+}
+function setEyelidPosition(value, stopAnimation=true) {
+  if(stopAnimation && eyelidAutoBlink) stopAutoBlink();
+  eyelidAmount=clamp(value,0,1);
+  morph(objectsByPart.Upper_Eyelid,'Closed',eyelidAmount);
+  morph(objectsByPart.Lower_Eyelid,'Closed',eyelidAmount);
+  $('eyelidSlider').value=Math.round(eyelidAmount*100);
+  $('eyelidValue').textContent=eyelidAmount<.04?'Open · খোলা':eyelidAmount>.96?'Closed · বন্ধ':`${Math.round(eyelidAmount*100)}%`;
+}
+function setEyelidsVisible(value) {
+  eyelidsVisible=!!value;
+  if(objectsByPart.Upper_Eyelid) objectsByPart.Upper_Eyelid.visible=eyelidsVisible;
+  if(objectsByPart.Lower_Eyelid) objectsByPart.Lower_Eyelid.visible=eyelidsVisible;
+  $('eyelidsBtn').classList.toggle('active',eyelidsVisible);
+  $('eyelidsBtn').textContent=eyelidsVisible?'Eyelids: ON':'Eyelids: OFF';
+  updateLabels();
+}
+function toggleAutoBlink() {
+  if(!eyelidMixer || !blinkAction) {
+    showToast('Eyelid animation is not available in this GLB');
+    return;
+  }
+  if(eyelidAutoBlink) {
+    stopAutoBlink();
+    setEyelidPosition(0,false);
+    return;
+  }
+  eyelidAutoBlink=true;
+  blinkAction.reset(); blinkAction.setLoop(THREE.LoopRepeat,Infinity); blinkAction.clampWhenFinished=false; blinkAction.play();
+  $('blinkBtn').classList.add('active'); $('blinkBtn').textContent='Blink: Pause';
+  showToast('Automatic blinking started · স্বয়ংক্রিয় পলক শুরু');
+}
+
+function setLanguage(mode) {
+  languageMode=mode;
+  $('languageBtn').textContent=mode==='both'?'EN + বাংলা':mode==='en'?'English':'বাংলা';
+  updateLabels(); updateInfo(activeKey);
+  document.querySelectorAll('.part-chip').forEach(el=>{
+    const p=getPart(el.dataset.key);
+    el.querySelector('.chip-en').style.display=mode==='bn'?'none':'block';
+    el.querySelector('.chip-bn').style.display=mode==='en'?'none':'block';
+  });
+}
+function showToast(message) { const t=$('toast'); t.textContent=message; t.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>t.classList.remove('show'),2200); }
+
+function setupLoadedModel(gltf) {
+  gltfScene=gltf.scene; modelLoaded=true; modelPivot.add(gltfScene);
+  gltfScene.traverse(obj=>{
+    if(obj.isMesh) {
+      obj.castShadow=true; obj.receiveShadow=true;
+      if(obj.name==='Cornea') obj.renderOrder=5;
+      const key=Object.keys(PARTS).find(k=>k===obj.name);
+      if(key) objectsByPart[key]=obj;
+      if(obj.material) {
+        const original=Array.isArray(obj.material)?obj.material[0]:obj.material;
+        const map=original.map || null;
+        let mat;
+        if(obj.name==='Crystalline_Lens') mat=new THREE.MeshPhysicalMaterial({map,color:0xffffff,roughness:.07,metalness:0,transmission:.28,thickness:.24,ior:1.41,transparent:true,opacity:.75,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Zonules') mat=new THREE.MeshPhysicalMaterial({map,color:0xffe9c2,roughness:.3,transparent:true,opacity:.62,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Aqueous_Humor') mat=new THREE.MeshPhysicalMaterial({map,color:0x9fdcff,roughness:.03,transmission:.22,ior:1.336,transparent:true,opacity:.20,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Vitreous_Humor') mat=new THREE.MeshPhysicalMaterial({map,color:0xc5eaff,roughness:.08,transmission:.14,ior:1.336,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Sclera') mat=new THREE.MeshPhysicalMaterial({map,color:0xffffff,roughness:.28,clearcoat:.28,clearcoatRoughness:.17,side:THREE.DoubleSide});
+        else if(obj.name==='Cornea') mat=new THREE.MeshPhysicalMaterial({color:0x91cbe8,roughness:.055,metalness:0,transmission:.22,thickness:.10,ior:1.376,transparent:true,opacity:.46,depthWrite:false,clearcoat:.92,clearcoatRoughness:.045,side:THREE.DoubleSide});
+        else if(obj.name==='Upper_Eyelid'||obj.name==='Lower_Eyelid') mat=new THREE.MeshPhysicalMaterial({color:0xb87561,roughness:.72,metalness:0,clearcoat:.06,transparent:false,side:THREE.DoubleSide});
+        else if(obj.name==='Conjunctiva') mat=new THREE.MeshPhysicalMaterial({color:0xe69a9d,roughness:.62,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Corneoscleral_Junction') mat=new THREE.MeshStandardMaterial({color:0xc47d75,roughness:.48,transparent:true,opacity:.92,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Pupil') mat=new THREE.MeshBasicMaterial({color:0x02050a,side:THREE.DoubleSide});
+        else if(obj.name==='Iris') mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.46,side:THREE.DoubleSide});
+        else if(obj.name==='Retinal_Blood_Vessels') mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.42,side:THREE.DoubleSide});
+        else mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:obj.name==='Choroid_Vascular'?.82:.58,side:THREE.DoubleSide});
+        if(Array.isArray(obj.material)) obj.material=[mat]; else obj.material=mat;
+        obj.material.clippingPlanes=[];
+        obj.userData.partKey=key || null;
+      }
+    }
+  });
+  // The GLB root has an eye-wide hierarchy. Centre it without changing its internal anatomy.
+  gltfScene.updateMatrixWorld(true);
+  const box=new THREE.Box3().setFromObject(gltfScene);
+  const center=box.getCenter(new THREE.Vector3());
+  modelPivot.position.sub(center);
+  modelPivot.updateMatrixWorld(true);
+  // Create floating labels at the centre of each model object.
+  for(const key of Object.keys(PARTS)) if(objectsByPart[key]) makeLabel(key,objectsByPart[key]);
+  buildPartList(); setLanguage('both'); updateLabels(); applyClipping();
+  eyelidMixer=null; blinkAction=null;
+  const blinkClip=(gltf.animations||[]).find(clip=>clip.name==='Eyelid_Blink');
+  if(blinkClip) { eyelidMixer=new THREE.AnimationMixer(gltfScene); blinkAction=eyelidMixer.clipAction(blinkClip); }
+  setEyelidsVisible(true); stopAutoBlink(); setEyelidPosition(0,false);
+  setAccommodation(0); setLight(.5); updateInfo('Crystalline_Lens');
+  // Fit model to view using actual transformed bounds.
+  const fitted=new THREE.Box3().setFromObject(modelPivot); const sphere=fitted.getBoundingSphere(new THREE.Sphere());
+  modelRadius=Math.max(sphere.radius,.5);
+  controls.target.set(0,0,0);
+  defaultCameraPosition.set(modelRadius*.4,modelRadius*.15,modelRadius*3.5);
+  camera.position.copy(defaultCameraPosition);
+  controls.minDistance=modelRadius*1.25; controls.maxDistance=modelRadius*7;
+  camera.near=.05; camera.far=sphere.radius*30; camera.updateProjectionMatrix();
+  $('loading').style.display='none';
+  showToast('Enhanced eye model loaded · উন্নত চক্ষু মডেল প্রস্তুত');
+}
+function loadFromArrayBuffer(buffer) {
+  $('loading').style.display='block'; $('loadingTitle').textContent='Reading selected eye model…'; $('loadingSub').textContent='Parsing GLB geometry and embedded textures';
+  loader.parse(buffer,'',gltf=>{
+    // Clear any previous model and labels before a replacement load.
+    while(modelPivot.children.length) modelPivot.remove(modelPivot.children[0]);
+    Object.keys(objectsByPart).forEach(k=>delete objectsByPart[k]);
+    Object.keys(labelElements).forEach(k=>delete labelElements[k]);
+    eyelidMixer=null; blinkAction=null; eyelidAutoBlink=false;
+    $('labels').innerHTML=''; labelRenderer.domElement.id='labels-layer'; $('labels').appendChild(labelRenderer.domElement);
+    setupLoadedModel(gltf);
+  },err=>{ console.error(err); $('loadingTitle').textContent='Could not read this GLB'; $('loadingSub').textContent='Please choose the enhanced eye_model_enhanced.glb file.'; $('errorActions').style.display='block'; });
+}
+loader.load(MODEL_URL, setupLoadedModel, (xhr)=>{
+  if(xhr.total) $('loadingSub').textContent=`Loading 3D model… ${Math.round(xhr.loaded/xhr.total*100)}%`;
+}, (error)=>{
+  console.error('Automatic GLB load failed:',error);
+  $('loadingTitle').textContent='Automatic model load failed';
+  $('loadingSub').textContent='Keep the HTML and eye_model_enhanced.glb in the same folder, or choose the GLB file below.';
+  $('errorActions').style.display='block';
+});
+
+$('chooseModelBtn').addEventListener('click',()=>$('modelFile').click());
+$('modelFile').addEventListener('change',async e=>{
+  const file=e.target.files?.[0]; if(!file) return;
+  try { loadFromArrayBuffer(await file.arrayBuffer()); }
+  catch(err) { console.error(err); $('loadingTitle').textContent='File could not be opened'; $('loadingSub').textContent=err.message; }
+});
+$('lightSlider').addEventListener('input',e=>setLight(Number(e.target.value)/100));
+$('focusSlider').addEventListener('input',e=>setAccommodation(Number(e.target.value)/100));
+$('eyelidSlider').addEventListener('input',e=>setEyelidPosition(Number(e.target.value)/100,true));
+$('eyelidsBtn').addEventListener('click',()=>setEyelidsVisible(!eyelidsVisible));
+$('blinkBtn').addEventListener('click',toggleAutoBlink);
+$('sectionSlider').addEventListener('input',e=>{
+  const v=Number(e.target.value)/100;
+  sectionPlane.constant=-v;
+  $('sectionValue').textContent=Math.abs(v)<.03?'Centre':`${v>0?'Posterior':'Anterior'} ${Math.abs(Math.round(v*100))}%`;
+});
+$('sectionBtn').addEventListener('click',()=>{
+  sectionEnabled=!sectionEnabled;
+  sectionPlane.normal.set(1,0,0); sectionPlane.constant=0;
+  $('sectionSlider').value=0; $('sectionValue').textContent='Centre';
+  applyClipping();
+  controls.target.set(0,0,0);
+  // Look directly along the clipping-plane normal so the longitudinal cut face points toward the student.
+  if(sectionEnabled) {
+    cameraGoal=new THREE.Vector3(modelRadius*3.35,modelRadius*.12,modelRadius*.02);
+    showToast('Longitudinal section facing viewer · লম্বচ্ছেদ সামনে ঘোরানো হয়েছে');
+  } else {
+    cameraGoal=defaultCameraPosition.clone();
+    showToast('Whole eye view · সম্পূর্ণ চোখ');
+  }
+  controls.enabled=false;
+});
+$('labelsBtn').addEventListener('click',()=>{ labelsVisible=!labelsVisible; updateLabels(); });
+$('languageBtn').addEventListener('click',()=>setLanguage(languageMode==='both'?'en':languageMode==='en'?'bn':'both'));
+$('resetBtn').addEventListener('click',()=>{
+  sectionEnabled=false; sectionPlane.normal.set(1,0,0); sectionPlane.constant=0; applyClipping();
+  $('sectionSlider').value=0; $('sectionValue').textContent='Centre';
+  controls.target.set(0,0,0); cameraGoal=defaultCameraPosition.clone();
+  controls.enabled=false;
+  showToast('View reset · দৃশ্য পুনরায় সেট করা হয়েছে');
+});
+$('resetSimBtn').addEventListener('click',()=>{ setAccommodation(0); setLight(.5); showToast('Simulation reset · সিমুলেশন রিসেট'); });
+$('farBtn').addEventListener('click',()=>setAccommodation(0));
+$('nearBtn').addEventListener('click',()=>setAccommodation(1));
+$('closeInfo').addEventListener('click',()=>$('sidePanel').classList.add('collapsed'));
+$('infoToggle').addEventListener('click',()=>$('sidePanel').classList.toggle('collapsed'));
+$('raysBtn').addEventListener('click',()=>setRaysVisible(!raysVisible));
+
+// Browser speech synthesis: prefer Google voices when installed (Chrome commonly supplies them),
+// then fall back to the device's Bengali/English voice.
+function voiceFor(lang) {
+  const voices=window.speechSynthesis?.getVoices?.() || [];
+  const prefix=lang.toLowerCase().split('-')[0];
+  const matching=voices.filter(v=>v.lang && v.lang.toLowerCase().startsWith(prefix));
+  return matching.find(v=>/google/i.test(v.name)) || matching.find(v=>v.lang.toLowerCase()===lang.toLowerCase()) || matching[0] || null;
+}
+function say(text,lang) {
+  if(!('speechSynthesis' in window) || !text) return false;
+  const utterance=new SpeechSynthesisUtterance(text);
+  utterance.lang=lang; utterance.rate=lang.startsWith('bn')?.84:.91; utterance.pitch=1;
+  const voice=voiceFor(lang);
+  if(voice) utterance.voice=voice;
+  utterance.onstart=()=>{ $('voiceStatus').textContent=voice?`Speaking with ${voice.name}`:`Speaking with device voice (${lang})`; };
+  utterance.onerror=(event)=>{ $('voiceStatus').textContent=`Speech unavailable: ${event.error || 'voice error'}`; };
+  utterance.onend=()=>{ $('voiceStatus').textContent='Google voice preferred · browser voice fallback'; };
+  window.speechSynthesis.speak(utterance);
+  return true;
+}
+function speakPart(labelOnly=false) {
+  if(!('speechSynthesis' in window)) { showToast('Speech is not supported in this browser'); return; }
+  const p=getPart(activeKey); window.speechSynthesis.cancel();
+  const english=labelOnly ? p.en : `${p.en}. Structure: ${p.desc} Function: ${p.fn} Working mechanism: ${p.mechanism}`;
+  const bengali=labelOnly ? p.bn : `${p.bn}। গঠন: ${p.descBn} কাজ: ${p.fnBn} কার্যপদ্ধতি: ${p.mechanismBn}`;
+  if(languageMode!=='bn') say(english,'en-IN');
+  if(languageMode!=='en') say(bengali,'bn-IN'); // speechSynthesis queues the Bengali utterance after English.
+}
+$('speakLabelBtn').addEventListener('click',()=>speakPart(true));
+$('speakDetailsBtn').addEventListener('click',()=>speakPart(false));
+$('stopSpeechBtn').addEventListener('click',()=>{window.speechSynthesis?.cancel();$('voiceStatus').textContent='Speech stopped · বলা বন্ধ';});
+if('speechSynthesis' in window) window.speechSynthesis.addEventListener?.('voiceschanged',()=>{
+  const bn=voiceFor('bn-IN'); const en=voiceFor('en-IN');
+  $('voiceStatus').textContent=`Google voice: ${en?.name || 'device English'} / ${bn?.name || 'device Bengali'}`;
+});
+
+// Raycast the anatomical meshes so students can hover or click directly on a structure.
+function handlePointerMove(e) {
+  const rect=renderer.domElement.getBoundingClientRect();
+  pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
+  pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(pointer,camera);
+  const candidates=Object.values(objectsByPart);
+  const hits=raycaster.intersectObjects(candidates,true);
+  if(hits.length) {
+    let key=hits[0].object.userData.partKey;
+    if(!key) {
+      let cur=hits[0].object; while(cur && !key) { key=cur.userData?.partKey; cur=cur.parent; }
+    }
+    if(key && key!==lastHover) { lastHover=key; updateInfo(key); }
+    renderer.domElement.style.cursor=key?'pointer':'grab';
+  } else { lastHover=''; renderer.domElement.style.cursor='grab'; }
+}
+renderer.domElement.addEventListener('pointermove',handlePointerMove);
+renderer.domElement.addEventListener('click',()=>{ if(lastHover) { updateInfo(lastHover); focusPart(lastHover); } });
+
+window.addEventListener('resize',()=>{
+  camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight); labelRenderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  const frameDelta=Math.min(frameClock.getDelta(),.05);
+  if(eyelidMixer && eyelidAutoBlink) eyelidMixer.update(frameDelta);
+  if(cameraGoal) {
+    camera.position.lerp(cameraGoal,.12);
+    if(camera.position.distanceTo(cameraGoal)<.012) { camera.position.copy(cameraGoal); cameraGoal=null; controls.enabled=true; }
+  }
+  controls.update();
+  renderer.render(scene,camera);
+  // Keep the renderer active but hide the entire overlay root when labels are switched off.
+  if(labelsVisible) labelRenderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
