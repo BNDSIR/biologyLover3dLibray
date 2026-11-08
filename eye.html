@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="theme-color" content="#081321" />
-<title>Human Eye Explorer | মানবচক্ষু</title>
+<title>Human Eye Explorer V5 | মানবচক্ষু</title>
 <style>
   :root {
     --bg: #081321; --glass: rgba(9, 20, 34, .82); --glass2: rgba(16, 32, 50, .9);
@@ -20,10 +20,11 @@
   #webgl { position: absolute; inset: 0; }
   #webgl canvas { display:block; width:100%; height:100%; }
   #labels { position:absolute; inset:0; pointer-events:none; overflow:hidden; }
-  .part-label { padding: 4px 8px; border: 1px solid rgba(126,220,240,.42); border-radius: 8px; background: rgba(5,17,29,.76); color:#f2fbff; font-size:11px; font-weight:650; white-space:nowrap; box-shadow:0 4px 16px rgba(0,0,0,.28); text-shadow:0 1px 1px #000; backdrop-filter: blur(5px); }
-  .part-label::before { content:""; display:inline-block; width:6px; height:6px; margin:0 6px 1px 0; border-radius:50%; background:var(--cyan); }
-  .part-label.active { border-color:var(--gold); background:rgba(53,39,20,.88); }
-  .topbar { position:absolute; z-index:5; top:14px; left:16px; right:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
+  .part-label { padding:3px 6px; border:0; border-bottom:1px solid rgba(180,226,240,.72); border-radius:2px; background:rgba(5,17,29,.58); color:#f4fbff; font-size:11px; font-weight:700; white-space:nowrap; box-shadow:0 3px 12px rgba(0,0,0,.22); text-shadow:0 1px 2px #000; backdrop-filter:blur(4px); }
+  .part-label::before { content:""; display:inline-block; width:5px; height:5px; margin:0 6px 1px 0; border-radius:50%; background:#8be5f4; }
+  .part-label.active { color:#ffe1a2; border-bottom-color:#ffd47b; background:rgba(53,39,20,.7); }
+  .part-label.active::before { background:#ffd47b; }
+  .topbar { position:absolute; z-index:5; top:14px; left:72px; right:16px; display:flex; align-items:center; justify-content:space-between; gap:12px; pointer-events:none; }
   .brand, .top-actions { pointer-events:auto; background:rgba(6,16,28,.73); border:1px solid var(--line); box-shadow:var(--shadow); backdrop-filter:blur(14px); border-radius:14px; }
   .brand { padding:10px 14px; display:flex; align-items:center; gap:11px; }
   .brand-mark { width:34px; height:34px; border-radius:10px; background:linear-gradient(145deg,#69d9ed,#367bb9); display:grid; place-items:center; color:#071421; font-size:20px; font-weight:900; }
@@ -76,8 +77,24 @@
   .toast { position:absolute; z-index:11; left:50%; top:76px; transform:translateX(-50%); padding:8px 12px; border-radius:9px; background:rgba(8,24,39,.94); border:1px solid rgba(104,216,238,.38); font-size:11px; color:#e8faff; opacity:0; pointer-events:none; transition:opacity .2s; }
   .toast.show { opacity:1; }
   .mobile-info-toggle { display:none; }
+  #uiRevealBtn { display:none !important; }
+  #voiceMuteBtn, #menuToggleBtn { position:absolute; z-index:16; border:1px solid rgba(206,232,247,.36); color:#f5fbff; background:rgba(5,17,29,.82); backdrop-filter:blur(12px); box-shadow:0 6px 22px rgba(0,0,0,.28); border-radius:999px; padding:9px 13px; font-size:11px; font-weight:750; cursor:pointer; }
+  #menuToggleBtn { top:14px; left:14px; min-width:74px; min-height:42px; font-size:19px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  #menuToggleBtn span { font-size:10px; margin-left:5px; }
+  #voiceMuteBtn { top:68px; left:14px; min-width:92px; }
+  /* Tools and descriptions start closed. The hamburger keeps them open until the user closes it. */
+  #viewport:not(.menu-open) .topbar,
+  #viewport:not(.menu-open) .side-panel,
+  #viewport:not(.menu-open) .control-dock { opacity:0; visibility:hidden; pointer-events:none; }
+  #viewport.menu-open .topbar,
+  #viewport.menu-open .side-panel,
+  #viewport.menu-open .control-dock { opacity:1; visibility:visible; pointer-events:auto; }
+  #viewport.menu-open .topbar,
+  #viewport.menu-open .side-panel,
+  #viewport.menu-open .control-dock { transition:opacity .2s ease, transform .2s ease, visibility .2s ease; }
+  .side-panel.collapsed { display:none; }
   @media (max-width:760px) {
-    .topbar { top:7px; left:7px; right:7px; align-items:flex-start; gap:6px; }
+    .topbar { top:7px; left:58px; right:7px; align-items:flex-start; gap:6px; }
     .brand { padding:7px; gap:7px; }
     .brand-mark { width:28px;height:28px; }
     .brand-title { font-size:11px; }
@@ -103,6 +120,8 @@
     .footer-actions .btn { font-size:10px; min-height:34px; }
     .mobile-info-toggle { display:inline-block; }
     .part-label { font-size:9px; padding:3px 5px; }
+    #menuToggleBtn { top:7px; left:7px; min-width:68px; min-height:38px; padding:6px 9px; }
+    #voiceMuteBtn { top:56px; left:7px; padding:7px 10px; min-width:80px; font-size:10px; }
   }
   @media (max-width:420px) {
     .brand-sub { display:none; }
@@ -140,7 +159,7 @@
   <header class="topbar">
     <div class="brand">
       <div class="brand-mark">◉</div>
-      <div><div class="brand-title">HUMAN EYE EXPLORER</div><div class="brand-sub">মানবচক্ষুর ত্রিমাত্রিক পাঠ</div></div>
+      <d><div class="brand-title">HUMAN EYE EXPLORER-Developed By B.Debnath</div>
     </div>
     <div class="top-actions">
       <button class="btn active" id="languageBtn" title="Change language">EN + বাংলা</button>
@@ -234,6 +253,8 @@
     </div>
   </div>
   <div class="toast" id="toast"></div>
+  <button id="menuToggleBtn" type="button" aria-label="Open tools and descriptions" aria-expanded="false">☰<span>MENU</span></button>
+  <button id="voiceMuteBtn" type="button" aria-label="Mute automatic labels">🔊 Voice ON</button>
 </div>
 
 <script type="module">
@@ -304,12 +325,39 @@ const PARTS = {
   },
   Optic_Nerve: {
     en:'Optic nerve', bn:'অপটিক নার্ভ / দৃষ্টিস্নায়ু',
-    desc:'A bundle formed mainly by the axons of retinal ganglion cells. It exits the posterior part of the eyeball at the optic disc.',
-    descBn:'মূলত রেটিনার গ্যাংলিয়ন কোষের অ্যাক্সন দিয়ে গঠিত স্নায়ুতন্তুর গুচ্ছ। এটি অপটিক ডিস্ক দিয়ে চোখের পশ্চাৎ অংশ থেকে বের হয়।',
+    desc:'A pale nerve bundle leaving the back of the eyeball through the optic disc. The disc is slightly nasal to the fovea; the central retinal artery and vein travel within the nerve and emerge at the disc.',
+    descBn:'রেটিনার গ্যাংলিয়ন কোষের অ্যাক্সন দিয়ে গঠিত ফ্যাকাশে স্নায়ুগুচ্ছ চোখের পিছনের অপটিক ডিস্ক দিয়ে বের হয়। ডিস্কটি ফোভিয়ার তুলনায় নাসাল দিকে থাকে; সেন্ট্রাল রেটিনাল আর্টারি ও ভেইন স্নায়ুর ভিতর দিয়ে এসে ডিস্কে প্রবেশ/বের হয়।',
     fn:'It carries electrical signals generated in the retina toward the brain, where visual information is interpreted.',
     fnBn:'রেটিনায় উৎপন্ন বৈদ্যুতিক স্নায়ু-সংকেত মস্তিষ্কে বহন করে, যেখানে দৃষ্টিসংক্রান্ত তথ্য বিশ্লেষিত হয়।',
-    mechanism:'The optic disc has no rods or cones, so it corresponds to the physiological blind spot. The optic nerve is the visual pathway leaving the eye.',
-    mechanismBn:'অপটিক ডিস্কে রড ও কোন কোষ থাকে না, তাই এই স্থানে শারীরবৃত্তীয় অন্ধবিন্দু তৈরি হয়। অপটিক নার্ভ চোখ থেকে বের হওয়া দৃষ্টিপথের অংশ.'
+    mechanism:'The optic disc is the physiological blind spot because it contains no rods or cones. The focused image is formed on the photoreceptor-rich retina, ideally at the fovea—not on the optic disc.',
+    mechanismBn:'অপটিক ডিস্কে রড ও কোন কোষ নেই, তাই এটি শারীরবৃত্তীয় অন্ধবিন্দু। স্পষ্ট প্রতিবিম্ব আলোকগ্রাহী কোষসমৃদ্ধ রেটিনায়—বিশেষত ফোভিয়ায়—গঠিত হয়; অপটিক ডিস্কে নয়।'
+  },
+  Optic_Disc: {
+    en:'Optic disc (blind spot)', bn:'অপটিক ডিস্ক / অন্ধবিন্দু',
+    desc:'The pale circular exit site of retinal ganglion-cell axons and the entry/exit point for the central retinal vessels. It has no rods or cones.',
+    descBn:'রেটিনার গ্যাংলিয়ন কোষের অ্যাক্সন বের হওয়ার ফ্যাকাশে গোলাকার স্থান; সেন্ট্রাল রেটিনাল রক্তনালিও এখান দিয়ে প্রবেশ/বের হয়। এখানে রড ও কোন কোষ থাকে না।',
+    fn:'Creates the physiological blind spot in the visual field. It is not the normal site of image formation.',
+    fnBn:'দৃষ্টিক্ষেত্রে শারীরবৃত্তীয় অন্ধবিন্দু তৈরি করে। এটি প্রতিবিম্ব গঠনের স্বাভাবিক স্থান নয়।',
+    mechanism:'The optic disc lies nasal to the fovea. The focused image falls on the retina, commonly near the fovea, while the disc itself has no photoreceptors.',
+    mechanismBn:'অপটিক ডিস্ক ফোভিয়ার নাসাল দিকে থাকে। ফোকাস করা প্রতিবিম্ব রেটিনায়—সাধারণত ফোভিয়ার কাছে—গঠিত হয়; ডিস্কে আলোকগ্রাহী কোষ নেই।'
+  },
+  Fovea_Centralis: {
+    en:'Fovea centralis', bn:'ফোভিয়া সেন্ট্রালিস / কেন্দ্রীয় গর্ত',
+    desc:'A small central depression within the macula, rich in cones and specialized for the sharpest central vision.',
+    descBn:'ম্যাকুলার ভিতরে অবস্থিত ছোট কেন্দ্রীয় অবনমন; এখানে কোন কোষের ঘনত্ব বেশি এবং সবচেয়ে স্পষ্ট কেন্দ্রীয় দৃষ্টি তৈরি হয়।',
+    fn:'Provides high visual acuity and detailed colour vision when light is focused onto it.',
+    fnBn:'এখানে আলো ফোকাস হলে উচ্চ দৃষ্টিক্ষমতা ও সূক্ষ্ম রঙিন দৃষ্টি পাওয়া যায়।',
+    mechanism:'In this teaching diagram the inverted retinal image is placed near the fovea, temporal to the optic disc. The exact image position depends on gaze and object direction.',
+    mechanismBn:'এই শিক্ষামূলক চিত্রে উল্টো প্রতিবিম্বটি অপটিক ডিস্কের টেম্পোরাল দিকে ফোভিয়ার কাছে দেখানো হয়েছে। দৃষ্টির দিক ও বস্তুর অবস্থান অনুযায়ী প্রকৃত প্রতিবিম্বের স্থান পরিবর্তিত হয়।'
+  },
+  Hyaloid_Canal: {
+    en:'Hyaloid canal (Cloquet’s canal)', bn:'হায়ালয়েড ক্যানাল / ক্লোকেটের নালি',
+    desc:'A narrow, normally transparent channel through the vitreous, extending from the optic disc toward the back of the lens. It is the remnant pathway of the fetal hyaloid vessel.',
+    descBn:'ভিট্রিয়াসের ভিতর দিয়ে অপটিক ডিস্ক থেকে লেন্সের পশ্চাৎ পৃষ্ঠের দিকে বিস্তৃত সরু, সাধারণত স্বচ্ছ নালি। এটি ভ্রূণাবস্থার হায়ালয়েড রক্তনালির অবশিষ্ট পথ।',
+    fn:'It is an anatomical landmark in the vitreous rather than a normally functioning adult blood vessel.',
+    fnBn:'এটি ভিট্রিয়াসের একটি গঠনগত চিহ্ন; প্রাপ্তবয়স্ক চোখে সাধারণত কার্যকর রক্তনালি নয়।',
+    mechanism:'The fetal hyaloid artery normally regresses before birth, leaving Cloquet’s canal as a subtle channel through the vitreous.',
+    mechanismBn:'ভ্রূণাবস্থার হায়ালয়েড আর্টারি সাধারণত জন্মের আগে বিলুপ্ত হয়; ভিট্রিয়াসের ভিতরে সূক্ষ্ম পথ হিসেবে ক্লোকেটের নালি থেকে যায়।'
   },
   Retina_Inner: {
     en:'Retina', bn:'রেটিনা / অক্ষিপট',
@@ -322,12 +370,12 @@ const PARTS = {
   },
   Retinal_Blood_Vessels: {
     en:'Retinal blood vessels', bn:'রেটিনার রক্তনালি',
-    desc:'Branches of the central retinal artery and vein spread over the inner surface of the retina. The model shows a simplified vessel pattern.',
-    descBn:'সেন্ট্রাল রেটিনাল আর্টারি ও ভেইনের শাখা-প্রশাখা রেটিনার ভিতরের পৃষ্ঠে বিস্তৃত থাকে। মডেলে রক্তনালির একটি সরলীকৃত বিন্যাস দেখানো হয়েছে।',
+    desc:'The central retinal artery and vein pass through the optic nerve and emerge at the optic disc. Their branches spread over the inner retinal surface. Bright red branches represent arteries; darker blue-maroon branches represent veins.',
+    descBn:'সেন্ট্রাল রেটিনাল আর্টারি ও ভেইন অপটিক নার্ভের ভিতর দিয়ে এসে অপটিক ডিস্কে বের হয় এবং রেটিনার ভিতরের পৃষ্ঠে শাখা বিস্তার করে। উজ্জ্বল লাল শাখা আর্টারি এবং গাঢ় নীলচে-মেরুন শাখা ভেইন বোঝায়।',
     fn:'They provide oxygen and nutrients mainly to the inner retinal layers and return deoxygenated blood. The outer retina is largely supported by the choroidal circulation.',
     fnBn:'এগুলি মূলত রেটিনার ভিতরের স্তরে অক্সিজেন ও পুষ্টি পৌঁছে দেয় এবং ব্যবহৃত রক্ত ফিরিয়ে নিয়ে যায়। রেটিনার বাইরের অংশ প্রধানত কোরয়েডের রক্তসঞ্চালন থেকে পুষ্টি পায়।',
-    mechanism:'The retinal and choroidal circulations serve different retinal layers; they are complementary rather than interchangeable.',
-    mechanismBn:'রেটিনাল ও কোরয়েডাল রক্তসঞ্চালন রেটিনার ভিন্ন ভিন্ন স্তরকে পুষ্টি দেয়; দুটি ব্যবস্থা পরস্পরের পরিপূরক.'
+    mechanism:'The central retinal artery supplies much of the inner retina; the central retinal vein drains it. The outer retina is largely supported by the choroidal circulation. The visible branching is an educational simplification.',
+    mechanismBn:'সেন্ট্রাল রেটিনাল আর্টারি রেটিনার ভিতরের স্তরে রক্ত সরবরাহ করে এবং সেন্ট্রাল রেটিনাল ভেইন ব্যবহৃত রক্ত ফিরিয়ে নিয়ে যায়। বাইরের রেটিনা প্রধানত কোরয়েডের রক্তসঞ্চালন থেকে পুষ্টি পায়। এখানে শাখাবিন্যাসটি শিক্ষামূলক সরলীকরণ।'
   },
   Sclera: {
     en:'Sclera', bn:'স্ক্লেরা',
@@ -404,8 +452,36 @@ const PARTS = {
 };
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x091525);
-scene.fog = new THREE.Fog(0x091525, 7, 16);
+function makeDreamBackground() {
+  const c=document.createElement('canvas'); c.width=2048; c.height=1024;
+  const g=c.getContext('2d');
+  const sky=g.createLinearGradient(0,0,0,1024);
+  sky.addColorStop(0,'#122947'); sky.addColorStop(.43,'#386c82'); sky.addColorStop(.72,'#d69b89'); sky.addColorStop(1,'#263b4c');
+  g.fillStyle=sky; g.fillRect(0,0,c.width,c.height);
+  const glow=g.createRadialGradient(1480,270,12,1480,270,520);
+  glow.addColorStop(0,'rgba(255,235,190,.60)'); glow.addColorStop(.25,'rgba(250,190,156,.20)'); glow.addColorStop(1,'rgba(255,210,180,0)');
+  g.fillStyle=glow; g.fillRect(0,0,c.width,c.height);
+  // Soft cloud bands and distant hills create a calm, storybook teaching backdrop.
+  for(let i=0;i<24;i++) {
+    const x=(i*173+91)%c.width, y=110+(i*67)%420, r=70+(i*29)%120;
+    const cg=g.createRadialGradient(x,y,4,x,y,r);
+    cg.addColorStop(0,'rgba(235,247,239,.085)'); cg.addColorStop(1,'rgba(235,247,239,0)');
+    g.fillStyle=cg; g.fillRect(x-r,y-r,r*2,r*2);
+  }
+  g.fillStyle='rgba(19,48,63,.62)'; g.beginPath(); g.moveTo(0,780);
+  for(let x=0;x<=c.width;x+=120) g.quadraticCurveTo(x+60,700+Math.sin(x*.009)*35,x+120,770+Math.cos(x*.006)*28);
+  g.lineTo(c.width,1024); g.lineTo(0,1024); g.closePath(); g.fill();
+  g.fillStyle='rgba(12,34,50,.62)'; g.beginPath(); g.moveTo(0,870);
+  for(let x=0;x<=c.width;x+=100) g.quadraticCurveTo(x+50,815+Math.cos(x*.008)*30,x+100,870+Math.sin(x*.005)*22);
+  g.lineTo(c.width,1024); g.lineTo(0,1024); g.closePath(); g.fill();
+  for(let i=0;i<110;i++) {
+    const x=(i*197+39)%c.width, y=(i*83+53)%690, r=1+(i%4)*.7;
+    g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fillStyle=`rgba(255,245,220,${.12+(i%5)*.055})`; g.fill();
+  }
+  const tex=new THREE.CanvasTexture(c); tex.mapping=THREE.EquirectangularReflectionMapping; tex.colorSpace=THREE.SRGBColorSpace; return tex;
+}
+scene.background = makeDreamBackground();
+scene.fog = null;
 const camera = new THREE.PerspectiveCamera(42, innerWidth/innerHeight, .05, 80);
 camera.position.set(2.65, 1.25, 3.45);
 const renderer = new THREE.WebGLRenderer({antialias:true, alpha:false, powerPreference:'high-performance'});
@@ -448,6 +524,29 @@ const torchMarker = new THREE.Mesh(new THREE.SphereGeometry(.035,16,12), new THR
 torchMarker.position.copy(torch.position); scene.add(torchMarker);
 
 const modelPivot = new THREE.Group(); scene.add(modelPivot);
+let introHeadGroup=null, introHeadStart=0, introHeadDuration=3.7;
+function createIntroHead(radius) {
+  if(introHeadGroup) scene.remove(introHeadGroup);
+  introHeadGroup=new THREE.Group();
+  const headGeo=new THREE.SphereGeometry(1,34,26);
+  const headMat=new THREE.MeshBasicMaterial({color:0x9fe8ee,wireframe:true,transparent:true,opacity:.13,depthWrite:false,side:THREE.DoubleSide});
+  const head=new THREE.Mesh(headGeo,headMat); head.scale.set(radius*1.22,radius*1.48,radius*.92); introHeadGroup.add(head);
+  const fill=new THREE.Mesh(new THREE.SphereGeometry(1,40,28),new THREE.MeshBasicMaterial({color:0x9ed8e8,transparent:true,opacity:.035,depthWrite:false,side:THREE.DoubleSide}));
+  fill.scale.copy(head.scale); introHeadGroup.add(fill);
+  const orbit=new THREE.Mesh(new THREE.TorusGeometry(radius*.39,radius*.012,8,72),new THREE.MeshBasicMaterial({color:0xffdca2,transparent:true,opacity:.55,depthWrite:false}));
+  orbit.position.set(0,0,radius*.88); introHeadGroup.add(orbit);
+  const facePts=[new THREE.Vector3(-radius*.42,radius*.35,radius*.91),new THREE.Vector3(-radius*.22,radius*.17,radius*1.0),new THREE.Vector3(0,radius*.12,radius*1.03),new THREE.Vector3(radius*.10,-radius*.02,radius*1.02),new THREE.Vector3(radius*.02,-radius*.18,radius*.98),new THREE.Vector3(-radius*.15,-radius*.34,radius*.88)];
+  const faceCurve=new THREE.CatmullRomCurve3(facePts); const faceLine=new THREE.Mesh(new THREE.TubeGeometry(faceCurve,42,radius*.008,6,false),new THREE.MeshBasicMaterial({color:0xb7e9ef,transparent:true,opacity:.40,depthWrite:false})); introHeadGroup.add(faceLine);
+  introHeadGroup.userData.fadeMats=[headMat,fill.material,orbit.material,faceLine.material];
+  scene.add(introHeadGroup); introHeadStart=performance.now();
+}
+function updateIntroHead(now) {
+  if(!introHeadGroup) return;
+  const t=clamp((now-introHeadStart)/(introHeadDuration*1000),0,1), fade=1-t;
+  introHeadGroup.userData.fadeMats.forEach((m,i)=>m.opacity=[.13,.035,.55,.40][i]*fade);
+  introHeadGroup.scale.setScalar(1+.025*Math.sin(t*Math.PI));
+  if(t>=1) { scene.remove(introHeadGroup); introHeadGroup=null; }
+}
 
 // A visible teaching object that moves along the optical axis as object distance changes.
 const objectTarget = new THREE.Group();
@@ -481,35 +580,40 @@ const objectCaption = new THREE.Sprite(new THREE.SpriteMaterial({map:objectCapti
 objectCaption.scale.set(.9,.20,1); objectCaption.position.set(0,.42,0); objectTarget.add(objectCaption);
 objectTarget.position.set(.38,.12,5.0); scene.add(objectTarget);
 
-// Three simplified teaching rays: object → cornea → lens → retina. They can be hidden independently.
+// Educational ray tracing: rays refract at the cornea/lens, cross in the vitreous,
+// and reach opposite retinal positions to illustrate the real, inverted retinal image.
 const opticalRayGroup = new THREE.Group(); scene.add(opticalRayGroup);
 const opticalRays = [];
-for (const [idx,color] of [[0,0xffd36c],[1,0x9be7ff],[2,0xffd36c]]) {
-  const geometry = new THREE.BufferGeometry();
-  const material = new THREE.LineBasicMaterial({color, transparent:true, opacity:.95, depthTest:false});
-  const line = new THREE.Line(geometry,material); line.renderOrder=30; opticalRayGroup.add(line); opticalRays.push(line);
+for (const color of [0xffcc72,0x9be7ff,0xf4a6d8]) {
+  const geometry=new THREE.BufferGeometry();
+  const material=new THREE.LineBasicMaterial({color,transparent:true,opacity:.96,depthTest:false});
+  const line=new THREE.Line(geometry,material); line.renderOrder=30; opticalRayGroup.add(line); opticalRays.push(line);
 }
-let raysVisible = true;
+const invertedImageGroup=new THREE.Group();
+const imageMaterial=new THREE.LineBasicMaterial({color:0x92f0bd,transparent:true,opacity:.95,depthTest:false});
+function addImageLine(a,b) { const ln=new THREE.Line(new THREE.BufferGeometry().setFromPoints([a,b]),imageMaterial); ln.renderOrder=32; invertedImageGroup.add(ln); }
+addImageLine(new THREE.Vector3(0,.22,-.965),new THREE.Vector3(0,-.20,-.965));
+addImageLine(new THREE.Vector3(0,-.20,-.965),new THREE.Vector3(-.075,-.10,-.965));
+addImageLine(new THREE.Vector3(0,-.20,-.965),new THREE.Vector3(.075,-.10,-.965));
+scene.add(invertedImageGroup);
+let raysVisible=true;
 function updateObjectAndRays() {
-  // Near object is close to the cornea; far object is moved farther along +Z.
-  const distance = 1.95 + (1-nearAmount)*3.35;
-  const eyeOffsetZ=modelPivot.position.z;
-  objectTarget.position.set(.38,.12,distance);
-  const rayStarts = [-.09,0,.09];
-  const corneaHits = [-.19,0,.19];
-  const lensHits = [-.075,0,.075];
-  opticalRays.forEach((line,i)=>{
-    const points = [
-      new THREE.Vector3(objectTarget.position.x+rayStarts[i],objectTarget.position.y,objectTarget.position.z),
-      new THREE.Vector3(corneaHits[i],0,eyeOffsetZ+1.12),
-      new THREE.Vector3(lensHits[i],0,eyeOffsetZ+.39),
-      new THREE.Vector3(0,0,eyeOffsetZ-.78)
-    ];
-    line.geometry.dispose(); line.geometry=new THREE.BufferGeometry().setFromPoints(points);
-  });
+  const distance=1.95+(1-nearAmount)*3.35;
+  const eyeZ=modelPivot.position.z;
+  // The teaching optical axis is directed to the fovea, which lies temporal to the optic disc.
+  const retinaX=.23;
+  objectTarget.position.set(retinaX,0,distance);
+  const yObj=0, yCornea=.13, yLens=.09, crossZ=eyeZ-.12, retinaZ=eyeZ-.965;
+  const rayPaths=[
+    [new THREE.Vector3(retinaX,yObj+.13,distance),new THREE.Vector3(retinaX,yCornea,eyeZ+1.12),new THREE.Vector3(retinaX,yLens,eyeZ+.39),new THREE.Vector3(retinaX,0,crossZ),new THREE.Vector3(retinaX,-.22,retinaZ)],
+    [new THREE.Vector3(retinaX,yObj-.13,distance),new THREE.Vector3(retinaX,-yCornea,eyeZ+1.12),new THREE.Vector3(retinaX,-yLens,eyeZ+.39),new THREE.Vector3(retinaX,0,crossZ),new THREE.Vector3(retinaX,.22,retinaZ)],
+    [new THREE.Vector3(retinaX,yObj,distance),new THREE.Vector3(retinaX,0,eyeZ+1.12),new THREE.Vector3(retinaX,0,eyeZ+.39),new THREE.Vector3(retinaX,0,retinaZ)]
+  ];
+  opticalRays.forEach((line,i)=>{ line.geometry.dispose(); line.geometry=new THREE.BufferGeometry().setFromPoints(rayPaths[i]); });
+  invertedImageGroup.position.set(retinaX,0,eyeZ);
 }
 function setRaysVisible(value) {
-  raysVisible=!!value; opticalRayGroup.visible=raysVisible;
+  raysVisible=!!value; opticalRayGroup.visible=raysVisible; invertedImageGroup.visible=raysVisible;
   $('raysBtn').classList.toggle('active',raysVisible);
   $('raysBtn').textContent=raysVisible?'Rays: ON':'Rays: OFF';
 }
@@ -529,13 +633,33 @@ let defaultCameraPosition = new THREE.Vector3(2.65,1.25,3.45);
 let cameraGoal = null;
 const objectsByPart = {};
 const labelElements = {};
+const labelLeaders = {};
+const labelLeaderGroup = new THREE.Group(); modelPivot.add(labelLeaderGroup);
 const originalMaterials = new Map();
+let speechMuted=false, hoverSpeakTimer=null;
+let menuOpen=false;
+function setMenuOpen(open) {
+  menuOpen=!!open;
+  $('viewport').classList.toggle('menu-open',menuOpen);
+  $('menuToggleBtn').setAttribute('aria-expanded',String(menuOpen));
+  $('menuToggleBtn').innerHTML=menuOpen?'✕<span>CLOSE</span>':'☰<span>MENU</span>';
+  $('menuToggleBtn').setAttribute('aria-label',menuOpen?'Close tools and descriptions':'Open tools and descriptions');
+  if(menuOpen) $('sidePanel').classList.remove('collapsed');
+}
+function wakeUI() { /* Menu visibility is user-controlled; pointer movement never opens or closes it. */ }
+function setSpeechMute(value) {
+  speechMuted=!!value;
+  $('voiceMuteBtn').textContent=speechMuted?'🔇 Voice MUTED':'🔊 Voice ON';
+  $('voiceMuteBtn').setAttribute('aria-label',speechMuted?'Enable automatic label speech':'Mute automatic label speech');
+  if(speechMuted) { clearTimeout(hoverSpeakTimer); window.speechSynthesis?.cancel(); }
+}
+
 const raycaster = new THREE.Raycaster();
 const pointer = new THREE.Vector2();
 let lastHover = '';
 let eyelidMixer = null;
 let blinkAction = null;
-let eyelidAutoBlink = true;
+let eyelidAutoBlink = false;
 let eyelidsVisible = true;
 let eyelidAmount = 0;
 const frameClock = new THREE.Clock();
@@ -596,15 +720,21 @@ function makeLabel(key,obj) {
   el.textContent=languageText(p.en,p.bn);
   const label=new CSS2DObject(el); const worldPos=new THREE.Vector3();
   const labelPoints={
-    Upper_Eyelid:new THREE.Vector3(0,.59,1.02),
-    Lower_Eyelid:new THREE.Vector3(0,-.57,1.02),
-    Conjunctiva:new THREE.Vector3(-.84,-.33,.52),
-    Corneoscleral_Junction:new THREE.Vector3(.72,-.08,.82)
+    Upper_Eyelid:new THREE.Vector3(0,.59,1.02), Lower_Eyelid:new THREE.Vector3(0,-.57,1.02),
+    Conjunctiva:new THREE.Vector3(-.84,-.33,.52), Corneoscleral_Junction:new THREE.Vector3(.72,-.08,.82),
+    Optic_Nerve:new THREE.Vector3(0,0,-.96)
   };
-  if(labelPoints[key]) worldPos.copy(obj.localToWorld(labelPoints[key].clone()));
+  if(obj.userData.labelAnchor) worldPos.copy(obj.localToWorld(obj.userData.labelAnchor.clone()));
+  else if(labelPoints[key]) worldPos.copy(obj.localToWorld(labelPoints[key].clone()));
   else obj.getWorldPosition(worldPos);
-  modelPivot.worldToLocal(worldPos); label.position.copy(worldPos); modelPivot.add(label);
-  labelElements[key]=el;
+  const targetWorld=worldPos.clone();
+  const idx=Object.keys(PARTS).indexOf(key), side=(idx%2===0)?1:-1, row=Math.floor(idx/2);
+  const box=new THREE.Box3().setFromObject(obj), size=box.getSize(new THREE.Vector3());
+  const anchorWorld=targetWorld.clone().add(new THREE.Vector3(side*(.34+Math.min(size.x,.9)*.22),((row%3)-1)*.21,.13+(row%2)*.08));
+  const localStart=modelPivot.worldToLocal(targetWorld), localEnd=modelPivot.worldToLocal(anchorWorld);
+  const leader=new THREE.Line(new THREE.BufferGeometry().setFromPoints([localStart,localEnd]),new THREE.LineBasicMaterial({color:0xb8e7ed,transparent:true,opacity:.70,depthTest:false}));
+  leader.renderOrder=29; labelLeaderGroup.add(leader); labelLeaders[key]=leader;
+  label.position.copy(localEnd); modelPivot.add(label); labelElements[key]=el;
 }
 function updateLabels() {
   for (const [key,el] of Object.entries(labelElements)) {
@@ -614,6 +744,8 @@ function updateLabels() {
   // Hide the complete CSS2D layer. CSS2DRenderer may reset individual label display styles on render.
   $('labels').style.display=labelsVisible?'block':'none';
   labelRenderer.domElement.style.display=labelsVisible?'block':'none';
+  labelLeaderGroup.visible=labelsVisible;
+  for(const l of Object.values(labelLeaders)) l.visible=labelsVisible;
   objectCaption.visible=labelsVisible;
   objectCtx.clearRect(0,0,512,112);
   objectCtx.fillStyle='rgba(5,17,29,.88)'; objectCtx.roundRect(5,5,502,102,24); objectCtx.fill();
@@ -710,7 +842,7 @@ function toggleAutoBlink() {
     return;
   }
   eyelidAutoBlink=true;
-  blinkAction.reset(); blinkAction.setLoop(THREE.LoopRepeat,Infinity); blinkAction.clampWhenFinished=false; blinkAction.play();
+  blinkAction.reset(); blinkAction.setLoop(THREE.LoopRepeat,Infinity); blinkAction.clampWhenFinished=false; blinkAction.setEffectiveTimeScale(.93); blinkAction.play();
   $('blinkBtn').classList.add('active'); $('blinkBtn').textContent='Blink: Pause';
   showToast('Automatic blinking started · স্বয়ংক্রিয় পলক শুরু');
 }
@@ -726,6 +858,94 @@ function setLanguage(mode) {
   });
 }
 function showToast(message) { const t=$('toast'); t.textContent=message; t.classList.add('show'); clearTimeout(showToast.timer); showToast.timer=setTimeout(()=>t.classList.remove('show'),2200); }
+
+
+function addPosteriorTeachingStructures(gltfScene) {
+  // Coordinate convention: cornea is anterior (+Z), posterior retina is at negative Z.
+  const discX=-.23, discY=.045, foveaX=.23, foveaY=0;
+  const sphereR=.985;
+  const surfaceZ=(x,y)=>-Math.sqrt(Math.max(.045,sphereR*sphereR-x*x-y*y))+.018;
+  const makeTube=(parent,points,radius,color,opacity=1,materialOptions={})=>{
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(p[0],p[1],p[2])));
+    const geo=new THREE.TubeGeometry(curve,Math.max(20,points.length*14),radius,8,false);
+    const mat=new THREE.MeshStandardMaterial({color,roughness:.42,metalness:.02,transparent:opacity<1,opacity,depthWrite:opacity>=.98,emissive:color,emissiveIntensity:.08,...materialOptions});
+    const mesh=new THREE.Mesh(geo,mat); mesh.userData.partKey='Retinal_Blood_Vessels'; mesh.renderOrder=24; parent.add(mesh); return mesh;
+  };
+  const attachKey=(group,key,anchor)=>{ group.name=key; group.userData.partKey=key; group.userData.labelAnchor=anchor.clone(); gltfScene.add(group); return group; };
+
+  // Move the existing optic nerve to the nasal side of the posterior pole, where its disc belongs.
+  const nerve=objectsByPart.Optic_Nerve;
+  if(nerve) {
+    nerve.position.x=discX; nerve.position.y=discY;
+    const nerveMat=new THREE.MeshPhysicalMaterial({color:0xd8c5a0,roughness:.82,transparent:true,opacity:.70,depthWrite:false,side:THREE.DoubleSide});
+    nerve.material=nerveMat; nerve.renderOrder=18;
+  }
+
+  // Pale optic disc and a subtle foveal marker, intentionally separated on the posterior retina.
+  const discGroup=attachKey(new THREE.Group(),'Optic_Disc',new THREE.Vector3(discX,discY,surfaceZ(discX,discY)));
+  const discPatch=new THREE.Mesh(new THREE.CircleGeometry(.095,56),new THREE.MeshStandardMaterial({color:0xe6c78c,roughness:.62,transparent:true,opacity:.88,side:THREE.DoubleSide,depthWrite:false}));
+  discPatch.position.set(discX,discY,surfaceZ(discX,discY)+.004); discPatch.renderOrder=26; discPatch.userData.partKey='Optic_Disc'; discGroup.add(discPatch);
+  const discRing=new THREE.Mesh(new THREE.RingGeometry(.086,.118,56),new THREE.MeshBasicMaterial({color:0xffd99b,transparent:true,opacity:.82,side:THREE.DoubleSide,depthWrite:false}));
+  discRing.position.set(discX,discY,surfaceZ(discX,discY)+.008); discRing.renderOrder=27; discRing.userData.partKey='Optic_Disc'; discGroup.add(discRing);
+
+  const foveaGroup=attachKey(new THREE.Group(),'Fovea_Centralis',new THREE.Vector3(foveaX,foveaY,surfaceZ(foveaX,foveaY)));
+  const foveaSpot=new THREE.Mesh(new THREE.CircleGeometry(.037,48),new THREE.MeshBasicMaterial({color:0xf7c76a,transparent:true,opacity:.9,side:THREE.DoubleSide,depthWrite:false}));
+  foveaSpot.position.set(foveaX,foveaY,surfaceZ(foveaX,foveaY)+.006); foveaSpot.renderOrder=27; foveaSpot.userData.partKey='Fovea_Centralis'; foveaGroup.add(foveaSpot);
+  const foveaRing=new THREE.Mesh(new THREE.RingGeometry(.055,.073,48),new THREE.MeshBasicMaterial({color:0xffdc8a,transparent:true,opacity:.76,side:THREE.DoubleSide,depthWrite:false}));
+  foveaRing.position.set(foveaX,foveaY,surfaceZ(foveaX,foveaY)+.009); foveaRing.renderOrder=27; foveaRing.userData.partKey='Fovea_Centralis'; foveaGroup.add(foveaRing);
+
+  // Replace the single-colour simplified GLB vessel overlay with paired artery/vein trees.
+  const oldVessels=objectsByPart.Retinal_Blood_Vessels;
+  if(oldVessels) oldVessels.visible=false;
+  const vesselGroup=attachKey(new THREE.Group(),'Retinal_Blood_Vessels',new THREE.Vector3(.12,.28,surfaceZ(.12,.28)));
+  const artery='#d84b40', vein='#60475e';
+  // Central retinal artery and vein can be seen travelling through the translucent nerve shaft.
+  makeTube(vesselGroup,[[discX-.027,discY,-1.62],[discX-.027,discY,-1.38],[discX-.027,discY,-1.12],[discX-.027,discY,-.96],[discX-.02,discY,surfaceZ(discX-.02,discY)+.012]],.014,artery,.98);
+  makeTube(vesselGroup,[[discX+.027,discY+.008,-1.62],[discX+.027,discY+.008,-1.38],[discX+.027,discY+.008,-1.12],[discX+.027,discY+.008,-.96],[discX+.02,discY+.008,surfaceZ(discX+.02,discY+.008)+.015]],.017,vein,.98);
+
+  const arteryPaths=[
+    [[discX,discY],[ -.13,.12],[-.02,.24],[.18,.37],[.43,.49],[.66,.54],[.78,.52]],
+    [[discX,discY],[-.13,-.07],[.02,-.20],[.24,-.34],[.48,-.46],[.68,-.50],[.78,-.48]],
+    [[discX,discY],[-.38,.13],[-.55,.20],[-.72,.27],[-.80,.30]],
+    [[discX,discY],[-.38,-.09],[-.55,-.21],[-.70,-.29],[-.79,-.31]]
+  ];
+  const veinPaths=[
+    [[discX+.025,discY-.018],[-.12,.085],[.00,.205],[.20,.335],[.45,.455],[.68,.50],[.80,.49]],
+    [[discX+.02,discY-.018],[-.11,-.095],[.045,-.225],[.27,-.365],[.50,-.485],[.70,-.525],[.80,-.50]],
+    [[discX+.018,discY-.012],[-.40,.16],[-.58,.23],[-.74,.29],[-.81,.32]],
+    [[discX+.018,discY-.018],[-.40,-.12],[-.58,-.24],[-.73,-.32],[-.81,-.34]]
+  ];
+  for(const path of arteryPaths) {
+    const pts=path.map(([x,y])=>[x,y,surfaceZ(x,y)+.014]);
+    makeTube(vesselGroup,pts,.010,artery,.99);
+  }
+  for(const path of veinPaths) {
+    const pts=path.map(([x,y])=>[x,y,surfaceZ(x,y)+.022]);
+    makeTube(vesselGroup,pts,.014,vein,.99);
+  }
+
+  // Cloquet's (hyaloid) canal: a fine, translucent remnant channel from disc to posterior lens.
+  const hyaloidGroup=attachKey(new THREE.Group(),'Hyaloid_Canal',new THREE.Vector3(-.10,.02,-.34));
+  const hyaloidCurve=new THREE.CatmullRomCurve3([
+    new THREE.Vector3(discX,discY,surfaceZ(discX,discY)+.018),
+    new THREE.Vector3(-.18,.035,-.72),
+    new THREE.Vector3(-.12,.025,-.46),
+    new THREE.Vector3(-.06,.012,-.17),
+    new THREE.Vector3(-.015,.004,.10),
+    new THREE.Vector3(0,0,.245)
+  ]);
+  const hyaloidTube=new THREE.Mesh(new THREE.TubeGeometry(hyaloidCurve,72,.017,10,false),new THREE.MeshPhysicalMaterial({color:0x9be5f2,roughness:.16,transmission:.35,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide,emissive:0x17485c,emissiveIntensity:.18}));
+  hyaloidTube.userData.partKey='Hyaloid_Canal'; hyaloidTube.renderOrder=20; hyaloidGroup.add(hyaloidTube);
+  const canalCore=new THREE.Mesh(new THREE.TubeGeometry(hyaloidCurve,72,.004,6,false),new THREE.MeshBasicMaterial({color:0xd0f6ff,transparent:true,opacity:.35,depthWrite:false}));
+  canalCore.userData.partKey='Hyaloid_Canal'; canalCore.renderOrder=21; hyaloidGroup.add(canalCore);
+
+  objectsByPart.Optic_Disc=discGroup;
+  objectsByPart.Fovea_Centralis=foveaGroup;
+  objectsByPart.Hyaloid_Canal=hyaloidGroup;
+  objectsByPart.Retinal_Blood_Vessels=vesselGroup;
+  // All custom structures are selectable by raycasting, including their tube meshes.
+  [discGroup,foveaGroup,hyaloidGroup,vesselGroup].forEach(g=>g.traverse(o=>{if(o.isMesh)o.userData.partKey=g.name;}));
+}
 
 function setupLoadedModel(gltf) {
   gltfScene=gltf.scene; modelLoaded=true; modelPivot.add(gltfScene);
@@ -743,26 +963,38 @@ function setupLoadedModel(gltf) {
         else if(obj.name==='Zonules') mat=new THREE.MeshPhysicalMaterial({map,color:0xffe9c2,roughness:.3,transparent:true,opacity:.62,depthWrite:false,side:THREE.DoubleSide});
         else if(obj.name==='Aqueous_Humor') mat=new THREE.MeshPhysicalMaterial({map,color:0x9fdcff,roughness:.03,transmission:.22,ior:1.336,transparent:true,opacity:.20,depthWrite:false,side:THREE.DoubleSide});
         else if(obj.name==='Vitreous_Humor') mat=new THREE.MeshPhysicalMaterial({map,color:0xc5eaff,roughness:.08,transmission:.14,ior:1.336,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide});
-        else if(obj.name==='Sclera') mat=new THREE.MeshPhysicalMaterial({map,color:0xffffff,roughness:.28,clearcoat:.28,clearcoatRoughness:.17,side:THREE.DoubleSide});
+        else if(obj.name==='Sclera') mat=new THREE.MeshPhysicalMaterial({map,color:0xf7fbff,roughness:.24,clearcoat:.36,clearcoatRoughness:.14,side:THREE.DoubleSide});
         else if(obj.name==='Cornea') mat=new THREE.MeshPhysicalMaterial({color:0x91cbe8,roughness:.055,metalness:0,transmission:.22,thickness:.10,ior:1.376,transparent:true,opacity:.46,depthWrite:false,clearcoat:.92,clearcoatRoughness:.045,side:THREE.DoubleSide});
         else if(obj.name==='Upper_Eyelid'||obj.name==='Lower_Eyelid') mat=new THREE.MeshPhysicalMaterial({color:0xb87561,roughness:.72,metalness:0,clearcoat:.06,transparent:false,side:THREE.DoubleSide});
         else if(obj.name==='Conjunctiva') mat=new THREE.MeshPhysicalMaterial({color:0xe69a9d,roughness:.62,transparent:true,opacity:.72,depthWrite:false,side:THREE.DoubleSide});
         else if(obj.name==='Corneoscleral_Junction') mat=new THREE.MeshStandardMaterial({color:0xc47d75,roughness:.48,transparent:true,opacity:.92,depthWrite:false,side:THREE.DoubleSide});
         else if(obj.name==='Pupil') mat=new THREE.MeshBasicMaterial({color:0x02050a,side:THREE.DoubleSide});
         else if(obj.name==='Iris') mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.46,side:THREE.DoubleSide});
-        else if(obj.name==='Retinal_Blood_Vessels') mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.42,side:THREE.DoubleSide});
-        else mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:obj.name==='Choroid_Vascular'?.82:.58,side:THREE.DoubleSide});
+        else if(obj.name==='Retinal_Blood_Vessels') mat=new THREE.MeshStandardMaterial({map,color:0xffb0a6,roughness:.42,side:THREE.DoubleSide,emissive:0x3b1019,emissiveIntensity:.10});
+        else if(obj.name==='Optic_Nerve') mat=new THREE.MeshPhysicalMaterial({color:0xd8c5a0,roughness:.82,transparent:true,opacity:.70,depthWrite:false,side:THREE.DoubleSide});
+        else if(obj.name==='Choroid_Vascular') mat=new THREE.MeshStandardMaterial({map,color:0xb75c65,roughness:.72,side:THREE.DoubleSide,emissive:0x26080d,emissiveIntensity:.10});
+        else if(obj.name==='Retina_Inner') mat=new THREE.MeshStandardMaterial({map,color:0xf1a9a2,roughness:.58,side:THREE.DoubleSide,emissive:0x321014,emissiveIntensity:.09});
+        else mat=new THREE.MeshStandardMaterial({map,color:0xffffff,roughness:.58,side:THREE.DoubleSide});
         if(Array.isArray(obj.material)) obj.material=[mat]; else obj.material=mat;
         obj.material.clippingPlanes=[];
         obj.userData.partKey=key || null;
       }
     }
   });
+  // Slightly exaggerate the spacing of the three coats for clear classroom identification.
+  // This is a teaching visual: the actual biological coats are much thinner than shown here.
+  if(objectsByPart.Sclera) objectsByPart.Sclera.scale.setScalar(1.012);
+  if(objectsByPart.Choroid_Vascular) objectsByPart.Choroid_Vascular.scale.setScalar(.982);
+  if(objectsByPart.Retina_Inner) objectsByPart.Retina_Inner.scale.setScalar(.950);
+  if(objectsByPart.Retinal_Blood_Vessels) objectsByPart.Retinal_Blood_Vessels.scale.setScalar(.950);
   // The GLB root has an eye-wide hierarchy. Centre it without changing its internal anatomy.
   gltfScene.updateMatrixWorld(true);
   const box=new THREE.Box3().setFromObject(gltfScene);
   const center=box.getCenter(new THREE.Vector3());
   modelPivot.position.sub(center);
+  modelPivot.updateMatrixWorld(true);
+  addPosteriorTeachingStructures(gltfScene);
+  gltfScene.updateMatrixWorld(true);
   modelPivot.updateMatrixWorld(true);
   // Create floating labels at the centre of each model object.
   for(const key of Object.keys(PARTS)) if(objectsByPart[key]) makeLabel(key,objectsByPart[key]);
@@ -780,8 +1012,12 @@ function setupLoadedModel(gltf) {
   camera.position.copy(defaultCameraPosition);
   controls.minDistance=modelRadius*1.25; controls.maxDistance=modelRadius*7;
   camera.near=.05; camera.far=sphere.radius*30; camera.updateProjectionMatrix();
+  updateObjectAndRays(); createIntroHead(modelRadius);
   $('loading').style.display='none';
-  showToast('Enhanced eye model loaded · উন্নত চক্ষু মডেল প্রস্তুত');
+  $('sidePanel').classList.remove('collapsed');
+  if(eyelidMixer && blinkAction) toggleAutoBlink();
+  wakeUI();
+  showToast('Eye anatomy revealed · চোখের গঠন প্রদর্শিত');
 }
 function loadFromArrayBuffer(buffer) {
   $('loading').style.display='block'; $('loadingTitle').textContent='Reading selected eye model…'; $('loadingSub').textContent='Parsing GLB geometry and embedded textures';
@@ -790,8 +1026,11 @@ function loadFromArrayBuffer(buffer) {
     while(modelPivot.children.length) modelPivot.remove(modelPivot.children[0]);
     Object.keys(objectsByPart).forEach(k=>delete objectsByPart[k]);
     Object.keys(labelElements).forEach(k=>delete labelElements[k]);
+    Object.values(labelLeaders).forEach(l=>{ labelLeaderGroup.remove(l); l.geometry.dispose(); l.material.dispose(); });
+    Object.keys(labelLeaders).forEach(k=>delete labelLeaders[k]);
     eyelidMixer=null; blinkAction=null; eyelidAutoBlink=false;
     $('labels').innerHTML=''; labelRenderer.domElement.id='labels-layer'; $('labels').appendChild(labelRenderer.domElement);
+    modelPivot.add(labelLeaderGroup);
     setupLoadedModel(gltf);
   },err=>{ console.error(err); $('loadingTitle').textContent='Could not read this GLB'; $('loadingSub').textContent='Please choose the enhanced eye.glb file.'; $('errorActions').style.display='block'; });
 }
@@ -851,6 +1090,13 @@ $('nearBtn').addEventListener('click',()=>setAccommodation(1));
 $('closeInfo').addEventListener('click',()=>$('sidePanel').classList.add('collapsed'));
 $('infoToggle').addEventListener('click',()=>$('sidePanel').classList.toggle('collapsed'));
 $('raysBtn').addEventListener('click',()=>setRaysVisible(!raysVisible));
+$('menuToggleBtn').addEventListener('click',()=>setMenuOpen(!menuOpen));
+$('voiceMuteBtn').addEventListener('click',()=>{ wakeUI(); setSpeechMute(!speechMuted); });
+$('viewport').addEventListener('pointerdown',wakeUI,{passive:true});
+$('viewport').addEventListener('pointermove',wakeUI,{passive:true});
+$('viewport').addEventListener('touchstart',wakeUI,{passive:true});
+window.addEventListener('keydown',e=>{ wakeUI(); if(e.key==='Escape') setMenuOpen(false); });
+setMenuOpen(false);
 
 // Browser speech synthesis: prefer Google voices when installed (Chrome commonly supplies them),
 // then fall back to the device's Bengali/English voice.
@@ -872,6 +1118,17 @@ function say(text,lang) {
   window.speechSynthesis.speak(utterance);
   return true;
 }
+function speakHoveredPart(key) {
+  if(speechMuted || !('speechSynthesis' in window)) return;
+  const p=getPart(key); window.speechSynthesis.cancel();
+  if(languageMode!=='bn') say(p.en,'en-IN');
+  if(languageMode!=='en') say(p.bn,'bn-IN');
+}
+function scheduleHoverSpeech(key) {
+  clearTimeout(hoverSpeakTimer);
+  if(speechMuted) return;
+  hoverSpeakTimer=setTimeout(()=>speakHoveredPart(key),520);
+}
 function speakPart(labelOnly=false) {
   if(!('speechSynthesis' in window)) { showToast('Speech is not supported in this browser'); return; }
   const p=getPart(activeKey); window.speechSynthesis.cancel();
@@ -890,6 +1147,7 @@ if('speechSynthesis' in window) window.speechSynthesis.addEventListener?.('voice
 
 // Raycast the anatomical meshes so students can hover or click directly on a structure.
 function handlePointerMove(e) {
+  wakeUI();
   const rect=renderer.domElement.getBoundingClientRect();
   pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
   pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
@@ -901,12 +1159,12 @@ function handlePointerMove(e) {
     if(!key) {
       let cur=hits[0].object; while(cur && !key) { key=cur.userData?.partKey; cur=cur.parent; }
     }
-    if(key && key!==lastHover) { lastHover=key; updateInfo(key); }
+    if(key && key!==lastHover) { lastHover=key; updateInfo(key); scheduleHoverSpeech(key); }
     renderer.domElement.style.cursor=key?'pointer':'grab';
   } else { lastHover=''; renderer.domElement.style.cursor='grab'; }
 }
 renderer.domElement.addEventListener('pointermove',handlePointerMove);
-renderer.domElement.addEventListener('click',()=>{ if(lastHover) { updateInfo(lastHover); focusPart(lastHover); } });
+renderer.domElement.addEventListener('click',()=>{ wakeUI(); if(lastHover) { updateInfo(lastHover); focusPart(lastHover); scheduleHoverSpeech(lastHover); } });
 
 window.addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
@@ -917,6 +1175,7 @@ window.addEventListener('resize',()=>{
 function animate() {
   requestAnimationFrame(animate);
   const frameDelta=Math.min(frameClock.getDelta(),.05);
+  updateIntroHead(performance.now());
   if(eyelidMixer && eyelidAutoBlink) eyelidMixer.update(frameDelta);
   if(cameraGoal) {
     camera.position.lerp(cameraGoal,.12);
@@ -927,6 +1186,7 @@ function animate() {
   // Keep the renderer active but hide the entire overlay root when labels are switched off.
   if(labelsVisible) labelRenderer.render(scene,camera);
 }
+setSpeechMute(false);
 animate();
 </script>
 </body>
